@@ -4,6 +4,7 @@ import android.app.Application
 import com.chuckerteam.chucker.api.ChuckerCollector
 import com.chuckerteam.chucker.api.ChuckerInterceptor
 import com.chuckerteam.chucker.api.RetentionManager
+import com.fathiraz.flowbell.core.utils.DebugToolsManager
 import com.fathiraz.flowbell.core.di.dataModule
 import com.fathiraz.flowbell.core.di.domainModule
 import com.fathiraz.flowbell.core.di.presentationModule
@@ -22,8 +23,8 @@ class App : Application() {
     // Initialize Timber with Crashlytics integration
     initializeTimber()
 
-    // Initialize Chucker HTTP inspector
-    initializeChucker()
+    // Initialize debug tools (Chucker, Hyperion)
+    DebugToolsManager.initialize(this)
 
     // Initialize Koin
     startKoin {
@@ -54,16 +55,6 @@ class App : Application() {
     // }
   }
 
-  private fun initializeChucker() {
-    // Chucker collector for HTTP inspection
-    val chuckerCollector = ChuckerCollector(
-      context = this,
-      // Keep HTTP transaction data for up to 7 days
-      retentionPeriod = RetentionManager.Period.ONE_WEEK
-    )
-
-    LoggerUtils.App.d("Chucker HTTP inspector initialized")
-  }
 
   private fun initializeWorkManager() {
     try {

@@ -18,7 +18,7 @@ import com.fathiraz.flowbell.core.utils.LoggerUtils
 
 @Database(
     entities = [AppPreferences::class, NotificationQueue::class, UserPreferencesEntity::class],
-    version = 7,
+    version = 8,
     exportSchema = false
 )
 @TypeConverters(NotificationQueueStatusConverter::class)
@@ -192,6 +192,25 @@ abstract class FlowBellDatabase : RoomDatabase() {
             }
         }
 
+        internal val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                LoggerUtils.Database.i("Migrating database from version 7 to 8: Adding debug mode column")
+
+                try {
+                    // Add is_debug_mode_enabled column to user_preferences table
+                    database.execSQL("""
+                        ALTER TABLE user_preferences
+                        ADD COLUMN is_debug_mode_enabled INTEGER NOT NULL DEFAULT 0
+                    """.trimIndent())
+
+                    LoggerUtils.Database.i("is_debug_mode_enabled column added successfully")
+                } catch (e: Exception) {
+                    LoggerUtils.Database.e("Error adding is_debug_mode_enabled column", e)
+                    throw e
+                }
+            }
+        }
+
         fun getDatabase(context: Context): FlowBellDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -199,7 +218,7 @@ abstract class FlowBellDatabase : RoomDatabase() {
                     FlowBellDatabase::class.java,
                     "flowbell_database"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
                     .addCallback(DatabaseCallback())
                     .build()
                 INSTANCE = instance
@@ -246,13 +265,14 @@ abstract class FlowBellDatabase : RoomDatabase() {
                                 webhook_url TEXT NOT NULL DEFAULT '',
                                 auto_start_service INTEGER NOT NULL DEFAULT 0,
                                 is_onboarding_completed INTEGER NOT NULL DEFAULT 0,
+                                is_debug_mode_enabled INTEGER NOT NULL DEFAULT 0,
                                 created_at INTEGER NOT NULL DEFAULT 0,
                                 updated_at INTEGER NOT NULL DEFAULT 0
                             )
                         """.trimIndent())
                     } else {
-                        // Table exists, check if is_onboarding_completed column exists
-                        ensureOnboardingColumn(db)
+                        // Table exists, check if missing columns exist
+                        ensureMissingColumns(db)
                     }
 
                     // Check if the default row exists
@@ -268,9 +288,9 @@ abstract class FlowBellDatabase : RoomDatabase() {
                             INSERT OR REPLACE INTO user_preferences (
                                 id, theme_mode, is_first_launch, notifications_enabled,
                                 webhook_url, auto_start_service, is_onboarding_completed,
-                                created_at, updated_at
+                                is_debug_mode_enabled, created_at, updated_at
                             ) VALUES (
-                                1, 'SYSTEM', 1, 1, '', 0, 0,
+                                1, 'SYSTEM', 1, 1, '', 0, 0, 0,
                                 ${System.currentTimeMillis()}, ${System.currentTimeMillis()}
                             )
                         """.trimIndent())
@@ -283,21 +303,24 @@ abstract class FlowBellDatabase : RoomDatabase() {
                 }
             }
 
-            private fun ensureOnboardingColumn(db: SupportSQLiteDatabase) {
+            private fun ensureMissingColumns(db: SupportSQLiteDatabase) {
                 try {
-                    // Check if is_onboarding_completed column exists
+                    // Check which columns exist
                     val columnCursor = db.query("PRAGMA table_info(user_preferences)")
-                    var columnExists = false
+                    var onboardingColumnExists = false
+                    var debugModeColumnExists = false
+
                     while (columnCursor.moveToNext()) {
                         val columnName = columnCursor.getString(1) // Column name is at index 1
-                        if (columnName == "is_onboarding_completed") {
-                            columnExists = true
-                            break
+                        when (columnName) {
+                            "is_onboarding_completed" -> onboardingColumnExists = true
+                            "is_debug_mode_enabled" -> debugModeColumnExists = true
                         }
                     }
                     columnCursor.close()
 
-                    if (!columnExists) {
+                    // Add missing is_onboarding_completed column
+                    if (!onboardingColumnExists) {
                         LoggerUtils.Database.i("Adding missing is_onboarding_completed column")
                         db.execSQL("""
                             ALTER TABLE user_preferences
@@ -305,8 +328,18 @@ abstract class FlowBellDatabase : RoomDatabase() {
                         """.trimIndent())
                         LoggerUtils.Database.i("is_onboarding_completed column added successfully")
                     }
+
+                    // Add missing is_debug_mode_enabled column
+                    if (!debugModeColumnExists) {
+                        LoggerUtils.Database.i("Adding missing is_debug_mode_enabled column")
+                        db.execSQL("""
+                            ALTER TABLE user_preferences
+                            ADD COLUMN is_debug_mode_enabled INTEGER NOT NULL DEFAULT 0
+                        """.trimIndent())
+                        LoggerUtils.Database.i("is_debug_mode_enabled column added successfully")
+                    }
                 } catch (e: Exception) {
-                    LoggerUtils.Database.e("Error ensuring onboarding column", e)
+                    LoggerUtils.Database.e("Error ensuring missing columns", e)
                 }
             }
         }

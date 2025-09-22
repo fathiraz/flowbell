@@ -1,10 +1,12 @@
 package com.fathiraz.flowbell.presentation.screens.settings
 
+import android.content.Context
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fathiraz.flowbell.domain.entities.ThemeMode
 import com.fathiraz.flowbell.domain.repositories.UserPreferencesRepository
+import com.fathiraz.flowbell.core.utils.DebugToolsManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,6 +34,7 @@ sealed interface SettingsEvent {
 }
 
 class SettingsViewModel(
+    private val context: Context,
     private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
@@ -52,6 +55,10 @@ class SettingsViewModel(
                         isDarkMode = isDarkMode,
                         isDebugModeEnabled = preferences.isDebugModeEnabled
                     )
+
+                    // Initialize debug tools state based on user preferences
+                    DebugToolsManager.setDebugModeEnabled(context, preferences.isDebugModeEnabled)
+
                     Timber.d("Preferences loaded: theme mode = %s, dark mode = %s, debug mode = %s",
                         preferences.themeMode, isDarkMode, preferences.isDebugModeEnabled)
                 }
@@ -112,6 +119,10 @@ class SettingsViewModel(
                         if (result.isFailure) {
                             throw result.exceptionOrNull() ?: Exception("Unknown error")
                         }
+
+                        // Control debug tools based on the new state
+                        DebugToolsManager.setDebugModeEnabled(context, newDebugMode)
+
                         Timber.d("Debug mode toggled to $newDebugMode")
                     } catch (e: Exception) {
                         Timber.e(e, "Failed to toggle debug mode")

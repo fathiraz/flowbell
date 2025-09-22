@@ -31,7 +31,7 @@ class HttpRequestUtils(private val context: Context) {
             .retryOnConnectionFailure(true)        // Enable retry on connection failure
             .addInterceptor(
                 ChuckerInterceptor.Builder(context)
-                    .collector(ChuckerCollector(context))
+                    .collector(DebugToolsManager.getChuckerCollector() ?: ChuckerCollector(context))
                     .maxContentLength(250000L)
                     .redactHeaders(emptySet())
                     .alwaysReadResponseBody(false)

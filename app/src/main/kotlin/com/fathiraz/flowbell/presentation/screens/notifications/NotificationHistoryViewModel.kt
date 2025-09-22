@@ -31,7 +31,7 @@ class NotificationHistoryViewModel(
             is HistoryEvent.FilterByStatus -> filterByStatus(event.status)
             is HistoryEvent.SearchByApp -> searchByApp(event.query)
             is HistoryEvent.ShowNotificationDetails -> showNotificationDetails(event.notificationLog)
-            HistoryEvent.Refresh -> loadNotifications()
+            HistoryEvent.Refresh -> refreshNotifications()
             HistoryEvent.ClearFilters -> clearFilters()
             HistoryEvent.ToggleFilters -> toggleFilters()
             HistoryEvent.LoadMore -> loadMoreNotifications()
@@ -75,6 +75,19 @@ class NotificationHistoryViewModel(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             // The real-time flow will automatically update the UI
+        }
+    }
+
+    private fun refreshNotifications() {
+        android.util.Log.d("NotificationHistoryViewModel", "🔄 Pull-to-refresh triggered")
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isRefreshing = true, error = null)
+            try {
+                // Small delay to show refresh animation since data updates via real-time flow
+                kotlinx.coroutines.delay(500)
+            } finally {
+                _uiState.value = _uiState.value.copy(isRefreshing = false)
+            }
         }
     }
 
@@ -167,6 +180,7 @@ class NotificationHistoryViewModel(
 
 data class HistoryUiState(
     val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val logs: List<NotificationLog> = emptyList(),
     val filterStatus: String? = null,
     val searchApp: String = "",

@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import org.koin.androidx.compose.koinViewModel
 import com.fathiraz.flowbell.domain.entities.NotificationLog
+import com.fathiraz.flowbell.presentation.components.MediumPackageIcon
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -68,7 +69,7 @@ fun NotificationHistoryRoute(
     var showBottomSheet by remember { mutableStateOf(false) }
 
     PullToRefreshBox(
-        isRefreshing = uiState.isLoading,
+        isRefreshing = uiState.isRefreshing,
         onRefresh = { viewModel.onEvent(HistoryEvent.Refresh) },
         modifier = modifier.fillMaxSize()
     ) {
@@ -176,8 +177,8 @@ fun NotificationHistoryRoute(
                 // Notifications list
                 LazyColumn(
                     state = listState,
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    contentPadding = PaddingValues(vertical = 8.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(vertical = 4.dp)
                 ) {
                     items(uiState.filteredLogs) { notification ->
                         NotificationHistoryCard(
@@ -212,15 +213,10 @@ fun NotificationHistoryRoute(
 
     // Notification detail bottom sheet
     if (showBottomSheet && selectedNotification != null) {
-        val configuration = LocalConfiguration.current
-        val maxHeightDp = (configuration.screenHeightDp * 0.75).dp // 92% of screen height for nearly full coverage
-
         ModalBottomSheet(
             onDismissRequest = { showBottomSheet = false },
             sheetState = bottomSheetState,
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = maxHeightDp)
+            modifier = Modifier.fillMaxWidth()
         ) {
             NotificationDetailBottomSheet(
                 notification = selectedNotification!!,
@@ -253,31 +249,20 @@ private fun NotificationHistoryCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp), // Increased padding for better spacing
-            horizontalArrangement = Arrangement.spacedBy(16.dp), // Increased spacing
+                .padding(16.dp), // Reduced padding for more compact layout
+            horizontalArrangement = Arrangement.spacedBy(12.dp), // Reduced spacing
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // App icon placeholder
-            Box(
-                modifier = Modifier
-                    .size(48.dp) // Slightly larger icon
-                    .background(
-                        Color(0xFF3F51B5),
-                        RoundedCornerShape(24.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = notification.appName.firstOrNull()?.toString()?.uppercase() ?: "N",
-                    color = Color.White,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            // App package icon
+            MediumPackageIcon(
+                packageName = notification.packageName,
+                appName = notification.appName,
+                modifier = Modifier.size(40.dp) // Slightly smaller icon for compact layout
+            )
 
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp) // Added spacing between elements
+                verticalArrangement = Arrangement.spacedBy(6.dp) // Reduced spacing for compact layout
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -323,8 +308,6 @@ private fun NotificationHistoryCard(
                     overflow = TextOverflow.Ellipsis,
                     lineHeight = 20.sp // Added line height for better readability
                 )
-
-                Spacer(modifier = Modifier.height(4.dp)) // Additional spacing
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),

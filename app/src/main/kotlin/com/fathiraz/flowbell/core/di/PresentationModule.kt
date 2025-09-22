@@ -44,7 +44,7 @@ val presentationModule = module {
     }
     
     viewModel {
-        SettingsViewModel(get<UserPreferencesRepository>())
+        SettingsViewModel(androidContext(), get<UserPreferencesRepository>())
     }
     
     viewModel {

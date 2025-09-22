@@ -103,7 +103,7 @@ fun FlowBellNavigation(navController: NavHostController, themePreferences: Theme
             }
 
             composable("settings") {
-                SettingsRoute(navController = navController, themePreferences = themePreferences)
+                SettingsRoute()
             }
         }
     }

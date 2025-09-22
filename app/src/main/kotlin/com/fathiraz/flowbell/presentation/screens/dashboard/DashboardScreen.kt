@@ -80,7 +80,7 @@ fun DashboardScreen(
     val pullToRefreshState = rememberPullToRefreshState()
 
     PullToRefreshBox(
-        isRefreshing = uiState.isLoading,
+        isRefreshing = uiState.isRefreshing,
         onRefresh = { viewModel.refreshStatistics() },
         modifier = modifier.fillMaxSize()
     ) {
@@ -531,7 +531,15 @@ fun DashboardScreen(
                         )
                     }
                     TextButton(
-                        onClick = { navController.navigate("history") }
+                        onClick = {
+                            navController.navigate("history") {
+                                popUpTo(navController.graph.startDestinationId) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
                     ) {
                         Text(
                             text = "View All",
@@ -548,7 +556,15 @@ fun DashboardScreen(
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { navController.navigate("history") },
+                            .clickable {
+                                navController.navigate("history") {
+                                    popUpTo(navController.graph.startDestinationId) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                         shape = RoundedCornerShape(8.dp)
                     ) {
@@ -588,7 +604,15 @@ fun DashboardScreen(
                         uiState.recentActivity.forEach { activity ->
                             RecentActivityItem(
                                 activity = activity,
-                                onClick = { navController.navigate("history") }
+                                onClick = {
+                                    navController.navigate("history") {
+                                        popUpTo(navController.graph.startDestinationId) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
                             )
                         }
                     }
