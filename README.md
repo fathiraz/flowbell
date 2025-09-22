@@ -199,6 +199,12 @@ Payloads use UUID identifiers, include device metadata, and mirror the structure
 - [ ] Allow custom payload templates.
 - [ ] Add a switch to show or hide debug tooling in production builds.
 
+## 🛠️ Automation
+
+- GitHub Actions builds a fresh release APK whenever a GitHub Release is published and attaches it to the release page automatically.
+- release-please opens version bump PRs, keeps `versionName` in sync, and tags releases once the PR merges.
+- Both workflows live under `.github/workflows/` so the pipeline stays transparent and easy to tweak.
+
 ## 🤝 Contributing
 
 1. Fork the repository and create a feature branch (`git checkout -b feature/awesome`).
