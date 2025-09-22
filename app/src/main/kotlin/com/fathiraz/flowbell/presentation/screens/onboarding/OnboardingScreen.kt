@@ -1,10 +1,20 @@
 package com.fathiraz.flowbell.presentation.screens.onboarding
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.EaseOutCubic
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -17,7 +27,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -26,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fathiraz.flowbell.R
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 data class OnboardingPage(
     val title: String,
@@ -33,14 +43,12 @@ data class OnboardingPage(
     val icon: ImageVector
 )
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingScreen(
     onComplete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var currentPage by remember { mutableStateOf(0) }
-    var showRevealAnimation by remember { mutableStateOf(false) }
-
     val pages = listOf(
         OnboardingPage(
             title = "Welcome to FlowBell",
@@ -63,6 +71,16 @@ fun OnboardingScreen(
             icon = Icons.Default.Security
         )
     )
+
+    var showRevealAnimation by remember { mutableStateOf(false) }
+    val pagerState = rememberPagerState(
+        initialPage = 0, 
+        pageCount = { pages.size }
+    )
+    val coroutineScope = rememberCoroutineScope()
+    val currentPage by remember {
+        derivedStateOf { pagerState.currentPage }
+    }
 
     LaunchedEffect(Unit) {
         delay(500)
@@ -115,15 +133,12 @@ fun OnboardingScreen(
                         )
                     }
 
-                    // Onboarding content
-                    AnimatedContent(
-                        targetState = currentPage,
-                        transitionSpec = {
-                            fadeIn(animationSpec = tween(300)) togetherWith
-                            fadeOut(animationSpec = tween(300))
-                        },
+                    // Onboarding content with swipe enabled
+                    HorizontalPager(
+                        state = pagerState,
                         modifier = Modifier.weight(1f),
-                        label = "onboarding_content"
+                        userScrollEnabled = true,  // Explicitly enable user scrolling/swiping
+                        pageSpacing = 16.dp
                     ) { page ->
                         OnboardingPageContent(
                             page = pages[page],
@@ -183,10 +198,12 @@ fun OnboardingScreen(
                             // Next/Get Started button
                             Button(
                                 onClick = {
-                                    if (currentPage < pages.size - 1) {
-                                        currentPage++
-                                    } else {
-                                        onComplete()
+                                    coroutineScope.launch {
+                                        if (currentPage < pages.lastIndex) {
+                                            pagerState.animateScrollToPage(currentPage + 1)
+                                        } else {
+                                            onComplete()
+                                        }
                                     }
                                 },
                                 modifier = Modifier.widthIn(min = 120.dp),

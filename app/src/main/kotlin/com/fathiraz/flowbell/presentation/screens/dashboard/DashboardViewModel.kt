@@ -35,6 +35,7 @@ class DashboardViewModel(
 
     init {
         android.util.Log.d("DashboardViewModel", "🚀 DashboardViewModel initialized with real-time statistics and recent activity")
+        loadUserPreferences()
         loadStatistics()
         loadRecentActivity()
     }
@@ -109,6 +110,21 @@ class DashboardViewModel(
     fun forceRescheduleWorkManager() {
         // Implementation coming soon
     }
+
+    private fun loadUserPreferences() {
+        viewModelScope.launch {
+            try {
+                userPreferencesRepository.getUserPreferences().collect { preferences ->
+                    _uiState.value = _uiState.value.copy(
+                        isDebugModeEnabled = preferences.isDebugModeEnabled
+                    )
+                    Timber.d("Debug mode loaded: ${preferences.isDebugModeEnabled}")
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to load user preferences")
+            }
+        }
+    }
 }
 
 @androidx.compose.runtime.Immutable
@@ -116,5 +132,6 @@ data class DashboardUiState(
     val isLoading: Boolean = false,
     val statistics: NotificationStatistics = NotificationStatistics(),
     val recentActivity: List<NotificationLog> = emptyList(),
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val isDebugModeEnabled: Boolean = false
 )

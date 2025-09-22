@@ -19,13 +19,15 @@ data class SettingsUiState(
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val isPrivacyOptionsEnabled: Boolean = false,
-    val isNotificationFiltersEnabled: Boolean = false
+    val isNotificationFiltersEnabled: Boolean = false,
+    val isDebugModeEnabled: Boolean = false
 )
 
 sealed interface SettingsEvent {
     object ToggleTheme : SettingsEvent
     object TogglePrivacyOptions : SettingsEvent
     object ToggleNotificationFilters : SettingsEvent
+    object ToggleDebugMode : SettingsEvent
     object ClearError : SettingsEvent
 }
 
@@ -37,7 +39,7 @@ class SettingsViewModel(
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
     init {
-        // Observe theme preference changes from DataStore
+        // Observe user preferences changes from DataStore
         viewModelScope.launch {
             userPreferencesRepository.getUserPreferences()
                 .onEach { preferences ->
@@ -46,8 +48,12 @@ class SettingsViewModel(
                         ThemeMode.LIGHT -> false
                         ThemeMode.SYSTEM -> false // Default to light for system, or could detect system theme
                     }
-                    _uiState.value = _uiState.value.copy(isDarkMode = isDarkMode)
-                    Timber.d("Theme preference loaded: theme mode = %s, dark mode = %s", preferences.themeMode, isDarkMode)
+                    _uiState.value = _uiState.value.copy(
+                        isDarkMode = isDarkMode,
+                        isDebugModeEnabled = preferences.isDebugModeEnabled
+                    )
+                    Timber.d("Preferences loaded: theme mode = %s, dark mode = %s, debug mode = %s",
+                        preferences.themeMode, isDarkMode, preferences.isDebugModeEnabled)
                 }
                 .launchIn(viewModelScope)
         }
@@ -95,6 +101,21 @@ class SettingsViewModel(
                     } catch (e: Exception) {
                         Timber.e(e, "Failed to toggle notification filters")
                         _uiState.value = _uiState.value.copy(errorMessage = "Failed to update notification filters")
+                    }
+                }
+            }
+            SettingsEvent.ToggleDebugMode -> {
+                viewModelScope.launch {
+                    try {
+                        val newDebugMode = !_uiState.value.isDebugModeEnabled
+                        val result = userPreferencesRepository.updateDebugMode(newDebugMode)
+                        if (result.isFailure) {
+                            throw result.exceptionOrNull() ?: Exception("Unknown error")
+                        }
+                        Timber.d("Debug mode toggled to $newDebugMode")
+                    } catch (e: Exception) {
+                        Timber.e(e, "Failed to toggle debug mode")
+                        _uiState.value = _uiState.value.copy(errorMessage = "Failed to update debug mode")
                     }
                 }
             }

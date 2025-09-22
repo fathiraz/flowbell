@@ -214,6 +214,22 @@ class DataStoreManager(private val context: Context) {
     }
 
     /**
+     * Update debug mode preference
+     */
+    suspend fun updateDebugMode(isEnabled: Boolean): Result<Unit> {
+        return try {
+            dataStore.edit { preferences ->
+                preferences[PreferenceKeys.IS_DEBUG_MODE_ENABLED] = isEnabled
+            }
+            Timber.d("Debug mode updated to: $isEnabled")
+            Result.success(Unit)
+        } catch (exception: IOException) {
+            Timber.e(exception, "Failed to update debug mode preference")
+            Result.failure(exception)
+        }
+    }
+
+    /**
      * Clear webhook URL from both DataStore and fallback
      */
     suspend fun clearWebhookUrl(): Result<Unit> {
@@ -338,6 +354,7 @@ class DataStoreManager(private val context: Context) {
 
         val autoStartService = preferences[PreferenceKeys.AUTO_START_SERVICE] ?: false
         val isOnboardingCompleted = preferences[PreferenceKeys.IS_ONBOARDING_COMPLETED] ?: false
+        val isDebugModeEnabled = preferences[PreferenceKeys.IS_DEBUG_MODE_ENABLED] ?: false
 
         return UserPreferences(
             themeMode = themeMode,
@@ -345,7 +362,8 @@ class DataStoreManager(private val context: Context) {
             notificationsEnabled = notificationsEnabled,
             webhookUrl = webhookUrl,
             autoStartService = autoStartService,
-            isOnboardingCompleted = isOnboardingCompleted
+            isOnboardingCompleted = isOnboardingCompleted,
+            isDebugModeEnabled = isDebugModeEnabled
         )
     }
 }

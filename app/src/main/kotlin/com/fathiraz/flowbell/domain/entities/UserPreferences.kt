@@ -15,6 +15,7 @@ data class UserPreferences(
     val webhookUrl: String = "",
     val notificationsEnabled: Boolean = true,
     val autoStartService: Boolean = false,
-    val isOnboardingCompleted: Boolean = false
+    val isOnboardingCompleted: Boolean = false,
+    val isDebugModeEnabled: Boolean = false
 )
 

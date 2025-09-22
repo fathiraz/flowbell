@@ -33,6 +33,9 @@ data class UserPreferencesEntity(
     @ColumnInfo(name = "is_onboarding_completed")
     val isOnboardingCompleted: Boolean = false,
 
+    @ColumnInfo(name = "is_debug_mode_enabled")
+    val isDebugModeEnabled: Boolean = false,
+
     @ColumnInfo(name = "created_at")
     val createdAt: Long = System.currentTimeMillis(),
 
@@ -54,7 +57,8 @@ fun UserPreferencesEntity.toDomainModel(): UserPreferences {
         notificationsEnabled = notificationsEnabled,
         webhookUrl = webhookUrl,
         autoStartService = autoStartService,
-        isOnboardingCompleted = isOnboardingCompleted
+        isOnboardingCompleted = isOnboardingCompleted,
+        isDebugModeEnabled = isDebugModeEnabled
     )
 }
 
@@ -69,6 +73,7 @@ fun UserPreferences.toEntity(): UserPreferencesEntity {
         webhookUrl = webhookUrl,
         autoStartService = autoStartService,
         isOnboardingCompleted = isOnboardingCompleted,
+        isDebugModeEnabled = isDebugModeEnabled,
         updatedAt = System.currentTimeMillis()
     )
 }

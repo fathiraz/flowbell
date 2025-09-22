@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -323,6 +324,61 @@ fun SettingsScreen(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+
+        // Developer Section
+        Text(
+            text = "Developer",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black
+        )
+        Text(
+            text = "Debug and development tools",
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.Gray
+        )
+
+        // Debug Mode Setting
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Icon(
+                    Icons.Default.BugReport,
+                    contentDescription = "Debug Mode",
+                    tint = Color.Black,
+                    modifier = Modifier.size(24.dp)
+                )
+                Column {
+                    Text(
+                        text = "Debug Mode",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Black
+                    )
+                    Text(
+                        text = "Show debug tools in dashboard",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray
+                    )
+                }
+            }
+            Switch(
+                checked = state.isDebugModeEnabled,
+                onCheckedChange = { onEvent(SettingsEvent.ToggleDebugMode) },
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = Color(0xFF00BCD4),
+                    checkedTrackColor = Color(0xFF00BCD4).copy(alpha = 0.3f)
+                )
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
@@ -481,7 +537,8 @@ private fun SettingsScreenDarkPreview() {
             state = SettingsUiState(
                 isDarkMode = true,
                 isPrivacyOptionsEnabled = false,
-                isNotificationFiltersEnabled = true
+                isNotificationFiltersEnabled = true,
+                isDebugModeEnabled = true
             ),
             onEvent = {}
         )

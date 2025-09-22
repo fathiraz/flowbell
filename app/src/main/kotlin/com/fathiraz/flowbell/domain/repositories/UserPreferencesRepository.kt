@@ -74,4 +74,9 @@ interface UserPreferencesRepository {
      * Reset to defaults.
      */
     suspend fun resetToDefaults(): Result<Unit>
+
+    /**
+     * Update debug mode.
+     */
+    suspend fun updateDebugMode(isEnabled: Boolean): Result<Unit>
 }

@@ -66,6 +66,12 @@ interface UserPreferencesDao {
     suspend fun updateOnboardingCompleted(completed: Boolean, timestamp: Long = System.currentTimeMillis())
 
     /**
+     * Update debug mode
+     */
+    @Query("UPDATE user_preferences SET is_debug_mode_enabled = :isEnabled, updated_at = :timestamp WHERE id = 1")
+    suspend fun updateDebugMode(isEnabled: Boolean, timestamp: Long = System.currentTimeMillis())
+
+    /**
      * Clear webhook URL
      */
     @Query("UPDATE user_preferences SET webhook_url = '', updated_at = :timestamp WHERE id = 1")

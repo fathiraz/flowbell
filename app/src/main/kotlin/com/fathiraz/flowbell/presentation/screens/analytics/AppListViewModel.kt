@@ -7,7 +7,6 @@ import com.fathiraz.flowbell.domain.repositories.AppRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -44,18 +43,18 @@ class AppListViewModel(
                 _uiState.value = _uiState.value.copy(isLoading = true, error = null)
                 
                 appRepository.getAllApps().collect { allApps ->
-                    val filteredApps = if (_uiState.value.showSystemApps) {
-                        allApps
-                    } else {
-                        allApps.filter { !it.isSystemApp }
-                    }
-                    
+                    val filteredApps = filterAndSortApps(
+                        apps = allApps,
+                        includeSystemApps = _uiState.value.showSystemApps,
+                        query = _uiState.value.searchQuery
+                    )
+
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         apps = allApps,
-                        filteredApps = applySearchFilter(filteredApps, _uiState.value.searchQuery)
+                        filteredApps = filteredApps
                     )
-                    
+
                     Timber.d("Loaded ${allApps.size} apps (${filteredApps.size} after filtering)")
                 }
             } catch (e: Exception) {
@@ -68,15 +67,35 @@ class AppListViewModel(
         }
     }
     
-    private fun applySearchFilter(apps: List<App>, query: String): List<App> {
-        return if (query.isBlank()) {
+    private fun filterAndSortApps(
+        apps: List<App>,
+        includeSystemApps: Boolean,
+        query: String
+    ): List<App> {
+        val visibleApps = if (includeSystemApps) {
             apps
         } else {
-            apps.filter { app ->
+            apps.filter { !it.isSystemApp }
+        }
+
+        val filteredApps = if (query.isBlank()) {
+            visibleApps
+        } else {
+            visibleApps.filter { app ->
                 app.name.contains(query, ignoreCase = true) ||
-                app.packageName.contains(query, ignoreCase = true)
+                    app.packageName.contains(query, ignoreCase = true)
             }
         }
+
+        return sortApps(filteredApps)
+    }
+
+    private fun sortApps(apps: List<App>): List<App> {
+        return apps.sortedWith(
+            compareByDescending<App> { it.isForwardingEnabled }
+                .thenBy { it.name.lowercase() }
+                .thenBy { it.packageName.lowercase() }
+        )
     }
 
     fun onEvent(event: AppListEvent) {
@@ -102,13 +121,11 @@ class AppListViewModel(
                 }
             }
             is AppListEvent.UpdateSearch -> {
-                val currentApps = if (_uiState.value.showSystemApps) {
-                    _uiState.value.apps
-                } else {
-                    _uiState.value.apps.filter { !it.isSystemApp }
-                }
-                
-                val filtered = applySearchFilter(currentApps, event.query)
+                val filtered = filterAndSortApps(
+                    apps = _uiState.value.apps,
+                    includeSystemApps = _uiState.value.showSystemApps,
+                    query = event.query
+                )
                 _uiState.value = _uiState.value.copy(
                     searchQuery = event.query,
                     filteredApps = filtered
@@ -116,13 +133,11 @@ class AppListViewModel(
             }
             AppListEvent.ToggleSystemApps -> {
                 val showSystemApps = !_uiState.value.showSystemApps
-                val currentApps = if (showSystemApps) {
-                    _uiState.value.apps
-                } else {
-                    _uiState.value.apps.filter { !it.isSystemApp }
-                }
-                
-                val filtered = applySearchFilter(currentApps, _uiState.value.searchQuery)
+                val filtered = filterAndSortApps(
+                    apps = _uiState.value.apps,
+                    includeSystemApps = showSystemApps,
+                    query = _uiState.value.searchQuery
+                )
                 _uiState.value = _uiState.value.copy(
                     showSystemApps = showSystemApps,
                     filteredApps = filtered

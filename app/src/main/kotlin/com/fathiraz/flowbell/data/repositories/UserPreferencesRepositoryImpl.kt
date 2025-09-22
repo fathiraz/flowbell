@@ -200,6 +200,23 @@ class UserPreferencesRepositoryImpl(
         }
     }
 
+    override suspend fun updateDebugMode(isEnabled: Boolean): Result<Unit> {
+        return withContext(ioDispatcher) {
+            try {
+                val result = dataStoreManager.updateDebugMode(isEnabled)
+                if (result.isSuccess) {
+                    Timber.i("Debug mode successfully updated to: $isEnabled")
+                } else {
+                    Timber.w("Failed to update debug mode: ${result.exceptionOrNull()}")
+                }
+                result
+            } catch (exception: Exception) {
+                Timber.e(exception, "Unexpected error updating debug mode")
+                Result.failure(exception)
+            }
+        }
+    }
+
     /**
      * Basic URL validation helper
      */

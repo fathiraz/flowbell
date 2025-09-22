@@ -14,6 +14,7 @@ object PreferenceKeys {
     val WEBHOOK_URL = stringPreferencesKey("webhook_url")
     val AUTO_START_SERVICE = booleanPreferencesKey("auto_start_service")
     val IS_ONBOARDING_COMPLETED = booleanPreferencesKey("is_onboarding_completed")
+    val IS_DEBUG_MODE_ENABLED = booleanPreferencesKey("is_debug_mode_enabled")
 }
 
 /**

@@ -24,7 +24,8 @@ class UserPreferencesRoomRepository(
                     notificationsEnabled = it.notificationsEnabled,
                     webhookUrl = it.webhookUrl,
                     autoStartService = it.autoStartService,
-                    isOnboardingCompleted = it.isOnboardingCompleted
+                    isOnboardingCompleted = it.isOnboardingCompleted,
+                    isDebugModeEnabled = it.isDebugModeEnabled
                 )
             } ?: UserPreferences()
         }
@@ -40,6 +41,7 @@ class UserPreferencesRoomRepository(
                     webhookUrl = preferences.webhookUrl,
                     autoStartService = preferences.autoStartService,
                     isOnboardingCompleted = preferences.isOnboardingCompleted,
+                    isDebugModeEnabled = preferences.isDebugModeEnabled,
                     updatedAt = System.currentTimeMillis()
                 )
             )
@@ -126,6 +128,16 @@ class UserPreferencesRoomRepository(
     override suspend fun resetToDefaults(): Result<Unit> {
         return try {
             userPreferencesDao.clearAllPreferences()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun updateDebugMode(isEnabled: Boolean): Result<Unit> {
+        return try {
+            userPreferencesDao.ensurePreferencesExist()
+            userPreferencesDao.updateDebugMode(isEnabled)
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

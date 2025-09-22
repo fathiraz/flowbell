@@ -22,6 +22,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -171,7 +176,8 @@ fun NotificationHistoryRoute(
                 // Notifications list
                 LazyColumn(
                     state = listState,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(vertical = 8.dp)
                 ) {
                     items(uiState.filteredLogs) { notification ->
                         NotificationHistoryCard(
@@ -207,7 +213,7 @@ fun NotificationHistoryRoute(
     // Notification detail bottom sheet
     if (showBottomSheet && selectedNotification != null) {
         val configuration = LocalConfiguration.current
-        val maxHeightDp = (configuration.screenHeightDp * 0.8).dp
+        val maxHeightDp = (configuration.screenHeightDp * 0.75).dp // 92% of screen height for nearly full coverage
 
         ModalBottomSheet(
             onDismissRequest = { showBottomSheet = false },
@@ -240,22 +246,24 @@ private fun NotificationHistoryCard(
             .clickable { onClick() },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(16.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                .padding(20.dp), // Increased padding for better spacing
+            horizontalArrangement = Arrangement.spacedBy(16.dp), // Increased spacing
             verticalAlignment = Alignment.CenterVertically
         ) {
             // App icon placeholder
             Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(48.dp) // Slightly larger icon
                     .background(
                         Color(0xFF3F51B5),
-                        RoundedCornerShape(20.dp)
+                        RoundedCornerShape(24.dp)
                     ),
                 contentAlignment = Alignment.Center
             ) {
@@ -267,7 +275,10 @@ private fun NotificationHistoryCard(
                 )
             }
 
-            Column(modifier = Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp) // Added spacing between elements
+            ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -275,9 +286,11 @@ private fun NotificationHistoryCard(
                 ) {
                     Text(
                         text = notification.notificationTitle.takeIf { it.isNotEmpty() } ?: "Notification",
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.weight(1f)
+                        style = MaterialTheme.typography.titleMedium, // Changed to titleMedium for better hierarchy
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.weight(1f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
 
                     val statusColor = when (notification.status.name.lowercase()) {
@@ -289,13 +302,15 @@ private fun NotificationHistoryCard(
 
                     Card(
                         colors = CardDefaults.cardColors(containerColor = statusColor),
-                        modifier = Modifier.padding(start = 8.dp)
+                        modifier = Modifier.padding(start = 12.dp),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(
                             text = notification.status.name,
                             color = Color.White,
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
                         )
                     }
                 }
@@ -304,25 +319,57 @@ private fun NotificationHistoryCard(
                     text = notification.notificationText.takeIf { it.isNotEmpty() } ?: "No content",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 20.sp // Added line height for better readability
                 )
+
+                Spacer(modifier = Modifier.height(4.dp)) // Additional spacing
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "$formattedTime • ${notification.appName}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    if (notification.httpDetails != null) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         Text(
-                            text = "• HTTP details available",
+                            text = formattedTime,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.Medium
                         )
+                        Text(
+                            text = "•",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = notification.appName,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    
+                    if (notification.httpDetails != null) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = "•",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = "HTTP details available",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
                     }
                 }
             }

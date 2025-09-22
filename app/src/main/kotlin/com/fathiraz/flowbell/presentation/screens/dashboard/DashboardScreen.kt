@@ -126,36 +126,40 @@ fun DashboardScreen(
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                // HTTP debug button
-                IconButton(
-                    onClick = {
-                        context.startActivity(Chucker.getLaunchIntent(context))
-                    }
-                ) {
-                    Icon(
-                        Icons.Default.Http,
-                        contentDescription = "HTTP",
-                        tint = MaterialTheme.colorScheme.secondary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-                
-                // Hyperion debug button
-                IconButton(
-                    onClick = {
-                        if (context is android.app.Activity) {
-                            Hyperion.open(context)
+                // HTTP debug button - only show if debug mode is enabled
+                if (uiState.isDebugModeEnabled) {
+                    IconButton(
+                        onClick = {
+                            context.startActivity(Chucker.getLaunchIntent(context))
                         }
+                    ) {
+                        Icon(
+                            Icons.Default.Http,
+                            contentDescription = "HTTP",
+                            tint = MaterialTheme.colorScheme.secondary,
+                            modifier = Modifier.size(24.dp)
+                        )
                     }
-                ) {
-                    Icon(
-                        Icons.Default.BugReport,
-                        contentDescription = "Debug",
-                        tint = MaterialTheme.colorScheme.secondary,
-                        modifier = Modifier.size(24.dp)
-                    )
                 }
-                
+
+                // Hyperion debug button - only show if debug mode is enabled
+                if (uiState.isDebugModeEnabled) {
+                    IconButton(
+                        onClick = {
+                            if (context is android.app.Activity) {
+                                Hyperion.open(context)
+                            }
+                        }
+                    ) {
+                        Icon(
+                            Icons.Default.BugReport,
+                            contentDescription = "Debug",
+                            tint = MaterialTheme.colorScheme.secondary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+
                 // Refresh button
                 IconButton(onClick = { viewModel.refreshStatistics() }) {
                     Icon(
@@ -194,39 +198,41 @@ fun DashboardScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Action buttons
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Button(
-                onClick = { viewModel.triggerImmediateProcessing() },
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                ),
-                shape = RoundedCornerShape(12.dp)
+        // Action buttons - only show if debug mode is enabled
+        if (uiState.isDebugModeEnabled) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text(
-                    text = "Force Process",
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Medium
-                )
-            }
+                Button(
+                    onClick = { viewModel.triggerImmediateProcessing() },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        text = "Force Process",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
 
-            Button(
-                onClick = { viewModel.forceRescheduleWorkManager() },
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                ),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text(
-                    text = "Reschedule WorkManager",
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Medium
-                )
+                Button(
+                    onClick = { viewModel.forceRescheduleWorkManager() },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        text = "Reschedule WorkManager",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
         }
 
