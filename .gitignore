@@ -1,0 +1,59 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dev-debug.log
+
+# Dependency directories
+node_modules/
+
+# Environment variables
+.env
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS specific
+.DS_Store
+
+# START Ruler Generated Files
+/.codex/config.json
+/.codex/config.json.bak
+/.codex/config.toml
+/.codex/config.toml.bak
+/.cursor/mcp.json
+/.cursor/mcp.json.bak
+/.cursor/rules/ruler_cursor_instructions.mdc
+/.cursor/rules/ruler_cursor_instructions.mdc.bak
+/.gemini/settings.json
+/.gemini/settings.json.bak
+/AGENTS.md
+/AGENTS.md.bak
+# END Ruler Generated Files
+
+# AI Configuration Files
+.claude
+.cursor
+.claude-flow
+.gemini
+.taskmaster
+.serena
+CLAUDE.md
+AGENTS.md
+.mcp.json
+
+# Android Generated Files
+.gradle
+.kotlin
+app/build
+
+# Other Files
+prd.txt

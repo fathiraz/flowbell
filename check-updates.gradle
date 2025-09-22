@@ -1,0 +1,27 @@
+// Gradle script to check for dependency updates
+// Run with: ./gradlew checkUpdates
+
+plugins {
+    id 'com.github.ben-manes.versions' version '0.51.0'
+}
+
+dependencyUpdates {
+    checkForGradleUpdate = true
+    outputFormatter = "json"
+    outputDir = "build/dependencyUpdates"
+    
+    // Exclude alpha/beta/rc versions
+    rejectVersionIf {
+        candidate.version.contains('alpha') || 
+        candidate.version.contains('beta') || 
+        candidate.version.contains('rc')
+    }
+}
+
+task printLatestVersions {
+    doLast {
+        println "=== Latest Versions Check ==="
+        println "Run './gradlew dependencyUpdates' to see detailed updates"
+        println "Or use: ./gradlew checkUpdates"
+    }
+}

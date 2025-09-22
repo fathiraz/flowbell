@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- FlowBell Logo - Bell with Flow/Network elements -->
+    
+    <!-- Bell body -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,20c-8.8,0 -16,7.2 -16,16v8c0,2.2 -1.8,4 -4,4s-4,-1.8 -4,-4v-8c0,-13.3 10.7,-24 24,-24s24,10.7 24,24v8c0,2.2 -1.8,4 -4,4s-4,-1.8 -4,-4v-8C70,27.2 62.8,20 54,20z"/>
+    
+    <!-- Bell clapper -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,88c-2.2,0 -4,-1.8 -4,-4h8C58,86.2 56.2,88 54,88z"/>
+    
+    <!-- Bell base -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,92c-4.4,0 -8,-3.6 -8,-8h16C62,88.4 58.4,92 54,92z"/>
+    
+    <!-- Bell handle -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,36c-2.2,0 -4,1.8 -4,4v24c0,2.2 1.8,4 4,4s4,-1.8 4,-4V40C58,37.8 56.2,36 54,36z"/>
+    
+    <!-- Flow/Network elements -->
+    <!-- Top connection point -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M75,42m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0"/>
+    
+    <!-- Middle connection point -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M80,61m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0"/>
+    
+    <!-- Bottom connection point -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M75,82m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0"/>
+    
+    <!-- Connection lines -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:pathData="M75,45 L80,65 L75,85"/>
+</vector>

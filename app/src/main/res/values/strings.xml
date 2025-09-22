@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">FlowBell</string>
+    <string name="channel_name">Webhook Notifications</string>
+    <string name="channel_description">This is a notification channel for important updates.</string>
+</resources>

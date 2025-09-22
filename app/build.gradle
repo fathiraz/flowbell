@@ -1,0 +1,139 @@
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.crashlytics)
+}
+
+android {
+    namespace = "com.fathiraz.flowbell"
+    compileSdk = 35
+
+    defaultConfig {
+        applicationId = "com.fathiraz.flowbell"
+        minSdk = 26
+        targetSdk = 35
+        versionCode = 1
+        versionName = "1.0"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables {
+            useSupportLibrary = true
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
+    kotlinOptions {
+        jvmTarget = "21"
+    }
+    buildFeatures {
+        compose = true
+    }
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+}
+
+dependencies {
+    implementation(libs.core.ktx)
+    implementation(libs.lifecycle.runtime.ktx)
+    implementation(libs.activity.compose)
+    implementation(platform(libs.compose.bom))
+    implementation(libs.compose.ui)
+    implementation(libs.compose.ui.graphics)
+    implementation(libs.compose.ui.tooling)
+    implementation(libs.compose.material3)
+    implementation(libs.compose.material.icons.extended)
+    implementation(libs.navigation.compose)
+    implementation(libs.koin.android)
+    implementation(libs.koin.compose)
+    implementation(libs.timber)
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    implementation(libs.splashscreen.compose)
+    implementation(libs.lottie.compose)
+    
+    // Firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.analytics)
+    
+    // Room dependencies
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
+    
+    // Serialization
+    implementation(libs.kotlinx.serialization.json)
+    
+    // HTTP Client
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
+
+    // WorkManager
+    implementation(libs.work.runtime.ktx)
+
+    // Reveal onboarding
+    implementation(libs.reveal.core)
+    
+    // TODO: Add multi-module dependencies when modules are created
+    // implementation(project(":core:common"))
+    // implementation(project(":core:ui"))
+    // implementation(project(":core:data"))
+    // implementation(project(":core:domain"))
+    // Unit testing
+    testImplementation(libs.junit)
+    testImplementation(libs.mockk)
+    testImplementation(libs.coroutines.test)
+    testImplementation(libs.turbine)
+    testImplementation(libs.koin.test)
+    testImplementation(libs.koin.test.junit4)
+
+    // Instrumented testing
+    androidTestImplementation(libs.junit)
+    androidTestImplementation(libs.mockk.android)
+    androidTestImplementation(libs.espresso.core)
+    androidTestImplementation(platform(libs.compose.bom))
+    androidTestImplementation(libs.compose.ui.test.junit4)
+    androidTestImplementation(libs.coroutines.test)
+    androidTestImplementation(libs.koin.test)
+    androidTestImplementation(libs.koin.test.junit4)
+
+    // Debug tools
+    debugImplementation(libs.compose.ui.tooling)
+    debugImplementation(libs.compose.ui.test.manifest)
+
+    // Hyperion debugging tools
+    debugImplementation("com.willowtreeapps.hyperion:hyperion-core:0.9.38")
+    debugImplementation("com.willowtreeapps.hyperion:hyperion-attr:0.9.38")
+    debugImplementation("com.willowtreeapps.hyperion:hyperion-build-config:0.9.38")
+    debugImplementation("com.willowtreeapps.hyperion:hyperion-crash:0.9.38")
+    debugImplementation("com.willowtreeapps.hyperion:hyperion-disk:0.9.38")
+    debugImplementation("com.willowtreeapps.hyperion:hyperion-geiger-counter:0.9.38")
+    debugImplementation("com.willowtreeapps.hyperion:hyperion-measurement:0.9.38")
+    debugImplementation("com.willowtreeapps.hyperion:hyperion-phoenix:0.9.38")
+    debugImplementation("com.willowtreeapps.hyperion:hyperion-recorder:0.9.38")
+    debugImplementation("com.willowtreeapps.hyperion:hyperion-shared-preferences:0.9.38")
+    debugImplementation("com.willowtreeapps.hyperion:hyperion-timber:0.9.38")
+
+    // Chucker HTTP inspector
+    debugImplementation("com.github.chuckerteam.chucker:library:4.1.0")
+    releaseImplementation("com.github.chuckerteam.chucker:library-no-op:4.1.0")
+}
