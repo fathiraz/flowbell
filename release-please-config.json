@@ -1,0 +1,16 @@
+{
+  "packages": {
+    ".": {
+      "release-type": "simple",
+      "changelog-path": "CHANGELOG.md",
+      "extra-files": [
+        {
+          "type": "regex",
+          "path": "app/build.gradle",
+          "pattern": "versionName = \"[^\"]+\"",
+          "replacement": "versionName = \"${version}\""
+        }
+      ]
+    }
+  }
+}
