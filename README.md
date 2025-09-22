@@ -115,8 +115,8 @@ FlowBell stays in a single Gradle module but still keeps responsibilities separa
 
 1. **Clone the repo**
    ```bash
-   git clone https://github.com/fathiraz/NotificationWebhookApp.git
-   cd NotificationWebhookApp
+   git clone https://github.com/fathiraz/flowbell.git
+   cd flowbell
    ```
 2. **Open in Android Studio** – Use *File ▸ Open…* and select the project root. Let Gradle sync finish.
 3. **Configure Firebase (optional)** – `google-services.json` is checked in for Crashlytics; replace with your own project if you plan to ship.
@@ -222,7 +222,7 @@ There isn’t an open-source license yet, so please treat the code as all rights
 
 Maintainer – [@fathiraz](https://github.com/fathiraz)
 
-Project Link – [https://github.com/fathiraz/NotificationWebhookApp](https://github.com/fathiraz/NotificationWebhookApp)
+Project Link – [https://github.com/fathiraz/flowbell](https://github.com/fathiraz/flowbell)
 
 ## 🙏 Acknowledgments
 
