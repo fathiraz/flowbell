@@ -7,7 +7,7 @@
 ![Target SDK](https://img.shields.io/badge/targetSdk-35-444)
 
 <div align="center">
-  <img src="assets/dashboard.png" alt="FlowBell dashboard preview" width="720" />
+  <img src="assets/logo.png" alt="FlowBell dashboard preview" width="720" />
   <p><em>Single-activity Jetpack Compose app that listens to notifications and forwards them to your webhook in near real time.</em></p>
 </div>
 
@@ -32,6 +32,7 @@
     - [Webhook Payload](#webhook-payload)
   - [⚠️ Use With Caution](#️-use-with-caution)
   - [🗺️ Roadmap](#️-roadmap)
+  - [🛠️ Automation](#️-automation)
   - [🤝 Contributing](#-contributing)
   - [📄 License](#-license)
   - [📞 Contact](#-contact)
@@ -201,9 +202,9 @@ Payloads use UUID identifiers, include device metadata, and mirror the structure
 
 ## 🛠️ Automation
 
-- GitHub Actions builds a fresh release APK whenever a GitHub Release is published and attaches it to the release page automatically.
-- release-please opens version bump PRs, keeps `versionName` in sync, and tags releases once the PR merges.
-- Both workflows live under `.github/workflows/` so the pipeline stays transparent and easy to tweak.
+- GitHub Actions builds a clean release APK whenever a GitHub Release is published and attaches it to the release page.
+- release-please opens choreographed PRs to bump `versionName`, collect changelog entries, and tag releases automatically once merged.
+- Both workflows live under `.github/workflows/` and run on `main` without manual intervention.
 
 ## 🤝 Contributing
 
