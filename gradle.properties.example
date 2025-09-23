@@ -1,0 +1,14 @@
+# Gradle Properties Template
+# Copy this to gradle.properties and fill in your actual values
+# NEVER commit gradle.properties to git!
+
+# Keystore signing configuration
+KEYSTORE_FILE=release.keystore
+KEYSTORE_PASSWORD=your_secure_password_here
+KEY_ALIAS=your_key_alias_here
+KEY_PASSWORD=your_key_password_here
+
+# Android Gradle plugin options
+android.useAndroidX=true
+android.enableJetifier=true
+kotlin.code.style=official

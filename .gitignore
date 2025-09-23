@@ -55,11 +55,16 @@ AGENTS.md
 .kotlin
 app/build
 
-# Security - Keystore files
+# Security - Keystore files and credentials
 *.jks
 *.keystore
 release.keystore
 debug.keystore
+gradle.properties
+local.properties
+
+# APK files - don't commit signed APKs
+*.apk
 
 # Other Files
 prd.txt

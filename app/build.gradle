@@ -27,10 +27,11 @@ android {
 
     signingConfigs {
         release {
-            storeFile file('debug.keystore')
-            storePassword 'android'
-            keyAlias 'androiddebugkey'
-            keyPassword 'android'
+            // Load from gradle.properties or environment variables
+            storeFile file(project.findProperty('KEYSTORE_FILE') ?: 'release.keystore')
+            storePassword project.findProperty('KEYSTORE_PASSWORD') ?: System.getenv('KEYSTORE_PASSWORD')
+            keyAlias project.findProperty('KEY_ALIAS') ?: System.getenv('KEY_ALIAS')
+            keyPassword project.findProperty('KEY_PASSWORD') ?: System.getenv('KEY_PASSWORD')
         }
     }
 
