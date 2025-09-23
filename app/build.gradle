@@ -27,11 +27,17 @@ android {
 
     signingConfigs {
         release {
-            // Load from gradle.properties or environment variables
-            storeFile file(project.findProperty('KEYSTORE_FILE') ?: 'release.keystore')
-            storePassword project.findProperty('KEYSTORE_PASSWORD') ?: System.getenv('KEYSTORE_PASSWORD')
-            keyAlias project.findProperty('KEY_ALIAS') ?: System.getenv('KEY_ALIAS')
-            keyPassword project.findProperty('KEY_PASSWORD') ?: System.getenv('KEY_PASSWORD')
+            // Load from local.properties, gradle.properties, or environment variables
+            def localProps = new Properties()
+            def localPropsFile = rootProject.file('local.properties')
+            if (localPropsFile.exists()) {
+                localProps.load(new FileInputStream(localPropsFile))
+            }
+
+            storeFile file(localProps.getProperty('KEYSTORE_FILE') ?: project.findProperty('KEYSTORE_FILE') ?: 'release.keystore')
+            storePassword localProps.getProperty('KEYSTORE_PASSWORD') ?: project.findProperty('KEYSTORE_PASSWORD') ?: System.getenv('KEYSTORE_PASSWORD')
+            keyAlias localProps.getProperty('KEY_ALIAS') ?: project.findProperty('KEY_ALIAS') ?: System.getenv('KEY_ALIAS')
+            keyPassword localProps.getProperty('KEY_PASSWORD') ?: project.findProperty('KEY_PASSWORD') ?: System.getenv('KEY_PASSWORD')
         }
     }
 
