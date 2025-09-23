@@ -198,7 +198,9 @@ Payloads use UUID identifiers, include device metadata, and mirror the structure
 - [x] Add pull-to-refresh on dashboard, app list, and history screens.
 - [ ] Explore multi-webhook routing.
 - [ ] Allow custom payload templates.
-- [ ] Add a switch to show or hide debug tooling in production builds.
+- [x] Add a switch to show or hide debug tooling in production builds.
+- [ ] Filter words in notifications.
+- [ ] Filter words per app in notifications.
 
 ## 🛠️ Automation
 
