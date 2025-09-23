@@ -61,7 +61,6 @@ import androidx.navigation.NavController
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import com.chuckerteam.chucker.api.Chucker
-import com.willowtreeapps.hyperion.core.Hyperion
 import com.fathiraz.flowbell.domain.entities.NotificationLog
 import com.fathiraz.flowbell.domain.entities.NotificationQueueStatus
 import com.fathiraz.flowbell.presentation.components.SkeletonLoader
@@ -148,8 +147,15 @@ fun DashboardScreen(
                 if (uiState.isDebugModeEnabled) {
                     IconButton(
                         onClick = {
-                            if (context is android.app.Activity) {
-                                Hyperion.open(context)
+                            try {
+                                // Use reflection to avoid compile-time dependency in release builds
+                                val hyperionClass = Class.forName("com.willowtreeapps.hyperion.core.Hyperion")
+                                val openMethod = hyperionClass.getMethod("open", android.app.Activity::class.java)
+                                if (context is android.app.Activity) {
+                                    openMethod.invoke(null, context)
+                                }
+                            } catch (e: Exception) {
+                                // Hyperion not available in release build
                             }
                         }
                     ) {

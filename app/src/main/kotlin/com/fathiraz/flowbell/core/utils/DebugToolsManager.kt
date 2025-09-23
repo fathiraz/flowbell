@@ -2,7 +2,6 @@ package com.fathiraz.flowbell.core.utils
 
 import android.content.Context
 import com.chuckerteam.chucker.api.ChuckerCollector
-import com.willowtreeapps.hyperion.core.Hyperion
 import timber.log.Timber
 
 /**
@@ -62,12 +61,15 @@ object DebugToolsManager {
     fun getChuckerCollector(): ChuckerCollector? = chuckerCollector
 
     private fun enableDebugTools(context: Context) {
-        // Enable Hyperion
+        // Enable Hyperion (only available in debug builds)
         try {
-            Hyperion.enable()
+            // Use reflection to avoid compile-time dependency in release builds
+            val hyperionClass = Class.forName("com.willowtreeapps.hyperion.core.Hyperion")
+            val enableMethod = hyperionClass.getMethod("enable")
+            enableMethod.invoke(null)
             LoggerUtils.App.d("Hyperion enabled")
         } catch (e: Exception) {
-            LoggerUtils.App.e("Failed to enable Hyperion", e)
+            LoggerUtils.App.d("Hyperion not available (release build or missing dependency)")
         }
 
         // Enable Chucker notification

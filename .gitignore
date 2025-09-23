@@ -55,6 +55,12 @@ AGENTS.md
 .kotlin
 app/build
 
+# Security - Keystore files
+*.jks
+*.keystore
+release.keystore
+debug.keystore
+
 # Other Files
 prd.txt
 .ruler
