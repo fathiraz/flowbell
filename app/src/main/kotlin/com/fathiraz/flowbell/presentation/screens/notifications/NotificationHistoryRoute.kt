@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -34,6 +35,8 @@ import androidx.navigation.NavController
 import org.koin.androidx.compose.koinViewModel
 import com.fathiraz.flowbell.domain.entities.NotificationLog
 import com.fathiraz.flowbell.presentation.components.MediumPackageIcon
+import com.fathiraz.flowbell.presentation.components.SkeletonLoader
+import com.fathiraz.flowbell.presentation.components.AnimatedListItem
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -82,25 +85,41 @@ fun NotificationHistoryRoute(
         ) {
         // Header
         Row(
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Icon(
-                Icons.Default.History,
-                contentDescription = "History",
-                tint = Color(0xFF00BCD4),
-                modifier = Modifier.size(32.dp)
-            )
-            Column {
-                Text(
-                    text = "History",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Icon(
+                    Icons.Default.History,
+                    contentDescription = "History",
+                    tint = Color(0xFF00BCD4),
+                    modifier = Modifier.size(32.dp)
                 )
-                Text(
-                    text = if (uiState.isLoading) "Loading..." else "${uiState.filteredLogs.size} notifications",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                Column {
+                    Text(
+                        text = "History",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = if (uiState.isLoading) "Loading..." else "${uiState.filteredLogs.size} notifications",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            // Refresh button
+            IconButton(onClick = { viewModel.onEvent(HistoryEvent.Refresh) }) {
+                Icon(
+                    Icons.Default.Refresh,
+                    contentDescription = "Refresh",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
                 )
             }
         }
@@ -118,29 +137,8 @@ fun NotificationHistoryRoute(
         // Loading, empty state, or notifications list
         when {
             uiState.isLoading -> {
-                // Loading state
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        CircularProgressIndicator(
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(48.dp)
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = "Loading notification history...",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
+                // Loading state with skeleton
+                HistorySkeleton()
             }
 
             uiState.filteredLogs.isEmpty() -> {
@@ -472,5 +470,76 @@ private fun DetailRow(
             text = value,
             style = MaterialTheme.typography.bodyMedium
         )
+    }
+}
+
+@Composable
+private fun HistorySkeleton() {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        // Notification list skeletons only
+        repeat(8) { index ->
+            AnimatedListItem(
+                visible = true,
+                animationDelay = index * 50  // Faster animation: 0ms, 50ms, 100ms, etc. (all appear within 400ms)
+            ) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // App icon skeleton
+                        SkeletonLoader(width = 40.dp, height = 40.dp, cornerRadius = 12.dp)
+
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            // Title and status row
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                SkeletonLoader(width = 140.dp, height = 16.dp)
+                                SkeletonLoader(width = 60.dp, height = 24.dp, cornerRadius = 12.dp)
+                            }
+
+                            // Content text skeleton
+                            SkeletonLoader(width = 180.dp, height = 14.dp)
+                            SkeletonLoader(width = 220.dp, height = 14.dp)
+
+                            // Footer row skeleton
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    SkeletonLoader(width = 80.dp, height = 12.dp)
+                                    SkeletonLoader(width = 4.dp, height = 12.dp)
+                                    SkeletonLoader(width = 100.dp, height = 12.dp)
+                                }
+                                SkeletonLoader(width = 120.dp, height = 12.dp)
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }

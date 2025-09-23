@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 
 /**
  * ViewModel for Notification History with real-time updates
@@ -42,6 +43,18 @@ class NotificationHistoryViewModel(
         android.util.Log.d("NotificationHistoryViewModel", "🔄 Setting up real-time updates")
         viewModelScope.launch {
             try {
+                // Set loading state
+                _uiState.value = _uiState.value.copy(isLoading = true)
+
+                // Add timeout to prevent infinite loading
+                launch {
+                    delay(5000) // 5 second timeout
+                    if (_uiState.value.isLoading) {
+                        android.util.Log.w("NotificationHistoryViewModel", "⚠️ Loading timeout reached, clearing loading state")
+                        _uiState.value = _uiState.value.copy(isLoading = false)
+                    }
+                }
+
                 notificationQueueRepository.getRecentNotificationsFlow(
                     limit = _uiState.value.pageSize,
                     offset = 0
@@ -74,6 +87,7 @@ class NotificationHistoryViewModel(
         // Real-time updates handle this automatically, but we can trigger a refresh
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+
             // The real-time flow will automatically update the UI
         }
     }
@@ -81,10 +95,13 @@ class NotificationHistoryViewModel(
     private fun refreshNotifications() {
         android.util.Log.d("NotificationHistoryViewModel", "🔄 Pull-to-refresh triggered")
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isRefreshing = true, error = null)
+            _uiState.value = _uiState.value.copy(isRefreshing = true, isLoading = true, error = null)
             try {
-                // Small delay to show refresh animation since data updates via real-time flow
-                kotlinx.coroutines.delay(500)
+                // Show skeleton loading during refresh
+                delay(1000) // Show skeleton for 1 second
+
+                // Force reload by restarting the flow
+                setupRealtimeUpdates()
             } finally {
                 _uiState.value = _uiState.value.copy(isRefreshing = false)
             }

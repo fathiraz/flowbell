@@ -8,10 +8,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import timber.log.Timber
 
 data class AppListUiState(
     val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val apps: List<App> = emptyList(),
     val searchQuery: String = "",
     val filteredApps: List<App> = emptyList(),
@@ -66,7 +68,22 @@ class AppListViewModel(
             }
         }
     }
-    
+
+    private fun refreshApps() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isRefreshing = true, isLoading = true)
+            try {
+                // Show skeleton loading during refresh
+                delay(1000) // Show skeleton for 1 second
+
+                // Reload apps
+                loadApps()
+            } finally {
+                _uiState.value = _uiState.value.copy(isRefreshing = false)
+            }
+        }
+    }
+
     private fun filterAndSortApps(
         apps: List<App>,
         includeSystemApps: Boolean,
@@ -144,7 +161,7 @@ class AppListViewModel(
                 )
             }
             AppListEvent.RefreshApps -> {
-                loadApps()
+                refreshApps()
             }
         }
     }

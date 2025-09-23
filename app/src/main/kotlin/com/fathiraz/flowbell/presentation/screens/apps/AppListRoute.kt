@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,6 +22,9 @@ import androidx.navigation.NavController
 import com.fathiraz.flowbell.presentation.screens.notifications.AppListViewModel
 import com.fathiraz.flowbell.presentation.screens.notifications.AppListEvent
 import com.fathiraz.flowbell.presentation.components.MediumPackageIcon
+import com.fathiraz.flowbell.presentation.components.AnimatedListItem
+import com.fathiraz.flowbell.presentation.components.SkeletonLoader
+import com.fathiraz.flowbell.presentation.components.AnimatedPullToRefreshBox
 import org.koin.androidx.compose.koinViewModel
 
 
@@ -49,32 +53,11 @@ fun AppListRoute(
     }
 
     PullToRefreshBox(
-        isRefreshing = uiState.isLoading && !isInitialLoad,
+        isRefreshing = uiState.isRefreshing,
         onRefresh = { viewModel.onEvent(AppListEvent.RefreshApps) },
         modifier = modifier.fillMaxSize()
     ) {
-        // Show loading indicator on initial load or when no apps are available
-        if ((uiState.isLoading && isInitialLoad) || (uiState.isLoading && uiState.filteredApps.isEmpty())) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surface),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                    Text(
-                        text = "Loading apps...",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        } else {
-            Column(
+        Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.surface)
@@ -87,25 +70,40 @@ fun AppListRoute(
                         .fillMaxWidth()
                         .padding(top = 16.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Icon(
-                        Icons.Default.Apps,
-                        contentDescription = "Apps",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(32.dp)
-                    )
-                    Column {
-                        Text(
-                            text = "Apps",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Apps,
+                            contentDescription = "Apps",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(32.dp)
                         )
-                        Text(
-                            text = "Manage ${uiState.filteredApps.size} apps with notification access",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        Column {
+                            Text(
+                                text = "Apps",
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = if (uiState.isLoading) "Loading..." else "Manage ${uiState.filteredApps.size} apps with notification access",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    // Refresh button
+                    IconButton(onClick = { viewModel.onEvent(AppListEvent.RefreshApps) }) {
+                        Icon(
+                            Icons.Default.Refresh,
+                            contentDescription = "Refresh",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 }
@@ -207,23 +205,60 @@ fun AppListRoute(
                     }
                 }
 
-                // Apps list
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(uiState.filteredApps) { app ->
-                        AppListItem(
-                            app = app,
-                            onToggle = { isEnabled ->
-                                viewModel.onEvent(AppListEvent.ToggleApp(app.packageName, isEnabled))
+                // Apps list section
+                if ((uiState.isLoading && isInitialLoad) || (uiState.isLoading && uiState.filteredApps.isEmpty()) || uiState.isRefreshing) {
+                    // Show skeleton for app list only
+                    repeat(8) { index ->
+                        AnimatedListItem(
+                            visible = true,
+                            animationDelay = index * 50  // Faster animation: all appear within 400ms
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                SkeletonLoader(width = 48.dp, height = 48.dp, cornerRadius = 12.dp)
+                                Column(
+                                    modifier = Modifier.weight(1f),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    SkeletonLoader(width = 140.dp, height = 16.dp)
+                                    SkeletonLoader(width = 200.dp, height = 14.dp)
+                                }
+                                SkeletonLoader(width = 48.dp, height = 24.dp, cornerRadius = 12.dp)
                             }
-                        )
+                        }
+                    }
+                } else {
+                    // Show actual apps list
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(
+                            items = uiState.filteredApps,
+                            key = { it.packageName }
+                        ) { app ->
+                            val index = uiState.filteredApps.indexOf(app)
+                            AnimatedListItem(
+                                visible = true,
+                                animationDelay = if (isInitialLoad) index * 50 else 0
+                            ) {
+                                AppListItem(
+                                    app = app,
+                                    onToggle = { isEnabled ->
+                                        viewModel.onEvent(AppListEvent.ToggleApp(app.packageName, isEnabled))
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
             }
         }
     }
-}
 
 @Composable
 private fun AppListItem(

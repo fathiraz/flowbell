@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fathiraz.flowbell.domain.entities.ThemeMode
 import com.fathiraz.flowbell.domain.repositories.UserPreferencesRepository
+import com.fathiraz.flowbell.data.preferences.ThemePreferences
 import com.fathiraz.flowbell.core.utils.DebugToolsManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -41,26 +42,32 @@ class SettingsViewModel(
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
+    // Use ThemePreferences for dark mode
+    private val themePreferences = ThemePreferences(context)
+
     init {
+        // Observe theme preferences changes
+        viewModelScope.launch {
+            themePreferences.isDarkMode
+                .onEach { isDarkMode ->
+                    _uiState.value = _uiState.value.copy(isDarkMode = isDarkMode)
+                    Timber.d("Dark mode updated: $isDarkMode")
+                }
+                .launchIn(viewModelScope)
+        }
+
         // Observe user preferences changes from DataStore
         viewModelScope.launch {
             userPreferencesRepository.getUserPreferences()
                 .onEach { preferences ->
-                    val isDarkMode = when (preferences.themeMode) {
-                        ThemeMode.DARK -> true
-                        ThemeMode.LIGHT -> false
-                        ThemeMode.SYSTEM -> false // Default to light for system, or could detect system theme
-                    }
                     _uiState.value = _uiState.value.copy(
-                        isDarkMode = isDarkMode,
                         isDebugModeEnabled = preferences.isDebugModeEnabled
                     )
 
                     // Initialize debug tools state based on user preferences
                     DebugToolsManager.setDebugModeEnabled(context, preferences.isDebugModeEnabled)
 
-                    Timber.d("Preferences loaded: theme mode = %s, dark mode = %s, debug mode = %s",
-                        preferences.themeMode, isDarkMode, preferences.isDebugModeEnabled)
+                    Timber.d("User preferences loaded: debug mode = %s", preferences.isDebugModeEnabled)
                 }
                 .launchIn(viewModelScope)
         }
@@ -71,12 +78,9 @@ class SettingsViewModel(
             SettingsEvent.ToggleTheme -> {
                 viewModelScope.launch {
                     try {
-                        val newThemeMode = if (_uiState.value.isDarkMode) ThemeMode.LIGHT else ThemeMode.DARK
-                        val result = userPreferencesRepository.updateThemeMode(newThemeMode)
-                        if (result.isFailure) {
-                            throw result.exceptionOrNull() ?: Exception("Unknown error")
-                        }
-                        Timber.d("Theme toggled to %s mode", newThemeMode)
+                        val newDarkMode = !_uiState.value.isDarkMode
+                        themePreferences.setDarkMode(newDarkMode)
+                        Timber.d("Theme toggled to ${if (newDarkMode) "dark" else "light"} mode")
                     } catch (e: Exception) {
                         Timber.e(e, "Failed to toggle theme")
                         _uiState.value = _uiState.value.copy(errorMessage = "Failed to change theme")

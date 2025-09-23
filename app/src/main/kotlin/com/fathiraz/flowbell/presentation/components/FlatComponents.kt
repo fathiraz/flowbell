@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -31,8 +32,8 @@ import androidx.compose.ui.unit.dp
 import com.fathiraz.flowbell.presentation.theme.AppTheme
 
 /**
- * Flat Design Card - Clean, minimal design without shadows
- * Following 2025 minimalist trends
+ * Flat Design Card - Clean, minimal design with animations
+ * Following 2025 minimalist trends with microinteractions
  */
 @Composable
 fun FlatCard(
@@ -41,33 +42,17 @@ fun FlatCard(
     onClick: (() -> Unit)? = null,
     content: @Composable () -> Unit
 ) {
-    val cardModifier = if (onClick != null) {
-        modifier.clickable { onClick() }
-    } else {
-        modifier
-    }
-    
-    Card(
-        modifier = cardModifier
-            .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                shape = RoundedCornerShape(8.dp) // More angular for flat design
-            ),
-        shape = RoundedCornerShape(8.dp), // More angular corners
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 0.dp // Flat design - no elevation
-        )
+    AnimatedCard(
+        modifier = modifier,
+        onClick = onClick,
+        shape = shape
     ) {
         content()
     }
 }
 
 /**
- * Flat Design Button - Clean, minimal button
+ * Flat Design Button - Clean, minimal button with animations
  */
 @Composable
 fun FlatButton(
@@ -77,46 +62,19 @@ fun FlatButton(
     enabled: Boolean = true,
     isPrimary: Boolean = true
 ) {
-    val backgroundColor = if (isPrimary) {
-        MaterialTheme.colorScheme.primary
+    val colors = if (isPrimary) {
+        ButtonDefaults.buttonColors()
     } else {
-        MaterialTheme.colorScheme.surfaceVariant
+        ButtonDefaults.outlinedButtonColors()
     }
-    
-    val textColor = if (isPrimary) {
-        MaterialTheme.colorScheme.onPrimary
-    } else {
-        MaterialTheme.colorScheme.onSurfaceVariant
-    }
-    
-    Box(
-        modifier = modifier
-            .height(48.dp)
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(4.dp)) // More angular corners for flat design
-            .background(
-                if (enabled) backgroundColor else backgroundColor.copy(alpha = 0.6f)
-            )
-            .border(
-                width = 1.dp,
-                color = if (isPrimary) {
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-                } else {
-                    MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-                },
-                shape = RoundedCornerShape(4.dp)
-            )
-            .clickable(enabled = enabled) { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelLarge.copy(
-                fontWeight = FontWeight.Medium
-            ),
-            color = if (enabled) textColor else textColor.copy(alpha = 0.6f)
-        )
-    }
+
+    AnimatedButton(
+        text = text,
+        onClick = onClick,
+        modifier = modifier,
+        enabled = enabled,
+        colors = colors
+    )
 }
 
 /**

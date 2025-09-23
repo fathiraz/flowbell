@@ -64,6 +64,8 @@ import com.chuckerteam.chucker.api.Chucker
 import com.willowtreeapps.hyperion.core.Hyperion
 import com.fathiraz.flowbell.domain.entities.NotificationLog
 import com.fathiraz.flowbell.domain.entities.NotificationQueueStatus
+import com.fathiraz.flowbell.presentation.components.SkeletonLoader
+import com.fathiraz.flowbell.presentation.components.AnimatedListItem
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -119,7 +121,7 @@ fun DashboardScreen(
                     )
                 }
                 Text(
-                    text = "Notification Analytics",
+                    text = if (uiState.isLoading) "Loading..." else "${uiState.statistics.totalNotifications} total notifications",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -246,12 +248,8 @@ fun DashboardScreen(
 
         when {
             uiState.isLoading -> {
-                Box(
-                    modifier = Modifier.fillMaxWidth().height(200.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                }
+                // Dashboard skeleton loading
+                DashboardSkeleton()
             }
             uiState.errorMessage != null -> {
                 Card(
@@ -723,5 +721,134 @@ private fun RecentActivityItem(
     }
 }
 
+/**
+ * Dashboard loading skeleton screen
+ */
+@Composable
+private fun DashboardSkeleton() {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Statistics grid skeleton
+        AnimatedListItem(
+            visible = true,
+            animationDelay = 0
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                repeat(3) { index ->
+                    Card(
+                        modifier = Modifier.weight(1f),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            SkeletonLoader(width = 60.dp, height = 28.dp, cornerRadius = 4.dp)
+                            SkeletonLoader(width = 80.dp, height = 16.dp, cornerRadius = 4.dp)
+                        }
+                    }
+                }
+            }
+        }
 
+        // Time period selector skeleton
+        AnimatedListItem(
+            visible = true,
+            animationDelay = 50
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                repeat(4) {
+                    SkeletonLoader(
+                        width = 80.dp,
+                        height = 36.dp,
+                        cornerRadius = 18.dp
+                    )
+                }
+            }
+        }
+
+        // Quick actions skeleton
+        AnimatedListItem(
+            visible = true,
+            animationDelay = 100
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                SkeletonLoader(width = 120.dp, height = 20.dp, cornerRadius = 4.dp)
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    repeat(2) {
+                        SkeletonLoader(
+                            modifier = Modifier.weight(1f),
+                            height = 48.dp,
+                            cornerRadius = 8.dp
+                        )
+                    }
+                }
+            }
+        }
+
+        // Recent activity section skeleton
+        AnimatedListItem(
+            visible = true,
+            animationDelay = 300
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                SkeletonLoader(width = 140.dp, height = 20.dp, cornerRadius = 4.dp)
+
+                repeat(3) { index ->
+                    AnimatedListItem(
+                        visible = true,
+                        animationDelay = index * 50  // Faster animation
+                    ) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                SkeletonLoader(width = 20.dp, height = 20.dp, cornerRadius = 10.dp)
+
+                                Column(
+                                    modifier = Modifier.weight(1f),
+                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    SkeletonLoader(width = 120.dp, height = 16.dp, cornerRadius = 4.dp)
+                                    SkeletonLoader(width = 160.dp, height = 14.dp, cornerRadius = 4.dp)
+                                }
+
+                                SkeletonLoader(width = 60.dp, height = 14.dp, cornerRadius = 4.dp)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 

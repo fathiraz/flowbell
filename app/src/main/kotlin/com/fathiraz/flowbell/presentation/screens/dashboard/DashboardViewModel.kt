@@ -46,7 +46,7 @@ class DashboardViewModel(
             try {
                 android.util.Log.d("DashboardViewModel", "🔄 Setting up real-time statistics monitoring")
                 _uiState.value = _uiState.value.copy(isLoading = true)
-                
+
                 // Get real statistics from repository with real-time updates
                 statisticsRepository.getNotificationStatistics().collect { statistics ->
                     android.util.Log.d("DashboardViewModel", "📊 Real-time statistics update: ${statistics.totalNotifications} total, ${statistics.successfulDeliveries} successful")
@@ -101,11 +101,14 @@ class DashboardViewModel(
 
     fun refreshStatistics() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isRefreshing = true)
+            _uiState.value = _uiState.value.copy(isRefreshing = true, isLoading = true)
             try {
-                // Just trigger a refresh by calling the repositories directly
-                // The existing flows will automatically update
-                delay(500) // Small delay to show refresh animation
+                // Show skeleton loading during refresh
+                delay(1000) // Show skeleton for 1 second
+
+                // Reload statistics and recent activity
+                loadStatistics()
+                loadRecentActivity()
             } finally {
                 _uiState.value = _uiState.value.copy(isRefreshing = false)
             }

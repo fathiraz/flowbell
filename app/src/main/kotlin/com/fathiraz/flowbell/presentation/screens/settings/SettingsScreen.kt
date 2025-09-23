@@ -72,7 +72,7 @@ fun SettingsScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 16.dp)
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -88,7 +88,7 @@ fun SettingsScreen(
             Icon(
                 Icons.Default.Settings,
                 contentDescription = "Settings",
-                tint = Color(0xFF00BCD4),
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(32.dp)
             )
             Column {
@@ -96,12 +96,12 @@ fun SettingsScreen(
                     text = "Settings",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 Text(
                     text = "Customize your experience",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -111,12 +111,12 @@ fun SettingsScreen(
             text = "Appearance",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = Color.Black
+            color = MaterialTheme.colorScheme.onBackground
         )
         Text(
             text = "Customize the app's visual appearance",
             style = MaterialTheme.typography.bodyMedium,
-            color = Color.Gray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         // Dark Mode Setting
@@ -132,7 +132,7 @@ fun SettingsScreen(
                 Icon(
                     if (state.isDarkMode) Icons.Default.DarkMode else Icons.Default.LightMode,
                     contentDescription = "Dark Mode",
-                    tint = Color.Black,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(24.dp)
                 )
                 Column {
@@ -140,12 +140,12 @@ fun SettingsScreen(
                         text = "Dark Mode",
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium,
-                        color = Color.Black
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = "Toggle between light and dark theme",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -153,8 +153,8 @@ fun SettingsScreen(
                 checked = state.isDarkMode,
                 onCheckedChange = { onEvent(SettingsEvent.ToggleTheme) },
                 colors = SwitchDefaults.colors(
-                    checkedThumbColor = Color(0xFF00BCD4),
-                    checkedTrackColor = Color(0xFF00BCD4).copy(alpha = 0.3f)
+                    checkedThumbColor = MaterialTheme.colorScheme.primary,
+                    checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
                 )
             )
         }
@@ -166,12 +166,12 @@ fun SettingsScreen(
             text = "Privacy & Security",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = Color.Black
+            color = MaterialTheme.colorScheme.onBackground
         )
         Text(
             text = "Protect your data and enhance privacy",
             style = MaterialTheme.typography.bodyMedium,
-            color = Color.Gray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         // Privacy Options Setting
@@ -187,7 +187,7 @@ fun SettingsScreen(
                 Icon(
                     Icons.Default.Lock,
                     contentDescription = "Privacy",
-                    tint = Color.Black,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(24.dp)
                 )
                 Column {
@@ -195,12 +195,12 @@ fun SettingsScreen(
                         text = "Privacy Options",
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium,
-                        color = Color.Black
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = "Enhanced privacy settings for notifications",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -208,8 +208,8 @@ fun SettingsScreen(
                 checked = state.isPrivacyOptionsEnabled,
                 onCheckedChange = { onEvent(SettingsEvent.TogglePrivacyOptions) },
                 colors = SwitchDefaults.colors(
-                    checkedThumbColor = Color(0xFF00BCD4),
-                    checkedTrackColor = Color(0xFF00BCD4).copy(alpha = 0.3f)
+                    checkedThumbColor = MaterialTheme.colorScheme.primary,
+                    checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
                 )
             )
         }
@@ -221,12 +221,12 @@ fun SettingsScreen(
             text = "Notifications",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = Color.Black
+            color = MaterialTheme.colorScheme.onBackground
         )
         Text(
             text = "Manage notification filtering and processing",
             style = MaterialTheme.typography.bodyMedium,
-            color = Color.Gray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         // Advanced Filters Setting
@@ -242,7 +242,7 @@ fun SettingsScreen(
                 Icon(
                     Icons.Default.FilterAlt,
                     contentDescription = "Filters",
-                    tint = Color.Black,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(24.dp)
                 )
                 Column {
@@ -250,12 +250,12 @@ fun SettingsScreen(
                         text = "Advanced Filters",
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium,
-                        color = Color.Black
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = "Configure advanced notification filtering rules",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -263,8 +263,8 @@ fun SettingsScreen(
                 checked = state.isNotificationFiltersEnabled,
                 onCheckedChange = { onEvent(SettingsEvent.ToggleNotificationFilters) },
                 colors = SwitchDefaults.colors(
-                    checkedThumbColor = Color(0xFF00BCD4),
-                    checkedTrackColor = Color(0xFF00BCD4).copy(alpha = 0.3f)
+                    checkedThumbColor = MaterialTheme.colorScheme.primary,
+                    checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
                 )
             )
         }
@@ -280,19 +280,19 @@ fun SettingsScreen(
             Icon(
                 Icons.Default.FilterAlt,
                 contentDescription = "Content Filter",
-                tint = Color.Gray,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(24.dp)
             )
             Column {
                 Text(
                     text = "Content Filtering",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
                     text = "Filter notifications based on content keywords (Coming soon)",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -306,19 +306,19 @@ fun SettingsScreen(
             Icon(
                 Icons.Default.Schedule,
                 contentDescription = "Time Rules",
-                tint = Color.Gray,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(24.dp)
             )
             Column {
                 Text(
                     text = "Time-based Rules",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
                     text = "Set notification delivery schedules (Coming soon)",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -330,12 +330,12 @@ fun SettingsScreen(
             text = "Developer",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = Color.Black
+            color = MaterialTheme.colorScheme.onBackground
         )
         Text(
             text = "Debug and development tools",
             style = MaterialTheme.typography.bodyMedium,
-            color = Color.Gray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         // Debug Mode Setting
@@ -351,7 +351,7 @@ fun SettingsScreen(
                 Icon(
                     Icons.Default.BugReport,
                     contentDescription = "Debug Mode",
-                    tint = Color.Black,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(24.dp)
                 )
                 Column {
@@ -359,12 +359,12 @@ fun SettingsScreen(
                         text = "Debug Mode",
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium,
-                        color = Color.Black
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = "Show debug tools in dashboard",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -372,8 +372,8 @@ fun SettingsScreen(
                 checked = state.isDebugModeEnabled,
                 onCheckedChange = { onEvent(SettingsEvent.ToggleDebugMode) },
                 colors = SwitchDefaults.colors(
-                    checkedThumbColor = Color(0xFF00BCD4),
-                    checkedTrackColor = Color(0xFF00BCD4).copy(alpha = 0.3f)
+                    checkedThumbColor = MaterialTheme.colorScheme.primary,
+                    checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
                 )
             )
         }
