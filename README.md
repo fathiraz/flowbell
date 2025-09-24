@@ -44,7 +44,7 @@
 FlowBell turns your Android phone into a notification bridge that you control. A `NotificationListenerService` watches the apps you pick, bundles new notifications every few seconds, and sends a JSON payload to your webhook. The Compose-based UI shows what was forwarded, what failed, and how the queue is doing, while Koin keeps the wiring tidy and Room takes care of storage.
 
 ### Why FlowBell?
-- **Replace paid integrations**: Mirror TradingView, email, or messaging alerts into bots, dashboards, or automations without premium subscriptions.
+- **Replace paid integrations**: Mirror banking, email, or messaging alerts into bots, dashboards, or automations without premium subscriptions.
 - **Own the pipeline**: Self-hosted webhook endpoint, encrypted preferences, and a local queue so you are never locked out by a third-party.
 - **Operational visibility**: Observe send success, failures, retry counts, and the most recent activity directly from the dashboard.
 - **Developer tooling first**: Chucker, Hyperion, Timber, and structured logs keep debugging fast during development and QA.
@@ -143,16 +143,16 @@ Payloads use UUID identifiers, include device metadata, and mirror the structure
 
 ```json
 {
-  "id": "d2f2e1bf-61a4-4d04-8c2c-9c6503f7a8f6",
-  "timestamp": "2024-12-25T12:34:56.789Z",
+  "id": "e27fe565-51b4-48f8-92ef-f4c4d33580c8",
+  "timestamp": "2025-09-24T01:28:58.039Z",
   "app": {
-    "packageName": "com.tradingview.app",
-    "name": "TradingView",
+    "packageName": "com.jago.digitalBanking",
+    "name": "Jago",
     "version": "unknown"
   },
   "notification": {
-    "title": "Golden cross detected",
-    "text": "BTC/USDT on 15m crossed above MA50",
+    "title": "",
+    "text": "You've received Rp126.000 from PT BUZZER INDONESIA. Need help? Contact Tanya Jago at 1500 746.",
     "subText": null,
     "priority": "normal",
     "isOngoing": false,
@@ -160,7 +160,7 @@ Payloads use UUID identifiers, include device metadata, and mirror the structure
     "category": null
   },
   "media": {
-    "iconUri": "icon://2131755000",
+    "iconUri": "icon://2131623940",
     "largeIconUri": null,
     "iconBase64": null,
     "largeIconBase64": null
