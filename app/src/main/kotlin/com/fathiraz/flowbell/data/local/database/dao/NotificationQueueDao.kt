@@ -238,4 +238,38 @@ interface NotificationQueueDao {
      */
     @Query("SELECT COUNT(*) FROM notification_queue")
     fun observeQueueChanges(): Flow<Int>
+
+    /**
+     * Get daily notification statistics for trend analysis
+     * Groups notifications by date and counts total, successful, and failed
+     */
+    @Query("""
+        SELECT 
+            DATE(createdAt / 1000, 'unixepoch', 'localtime') as date,
+            COUNT(*) as totalNotifications,
+            SUM(CASE WHEN status = 'SENT' THEN 1 ELSE 0 END) as successfulDeliveries,
+            SUM(CASE WHEN status = 'FAILED' THEN 1 ELSE 0 END) as failedDeliveries
+        FROM notification_queue
+        WHERE createdAt >= :startTime AND createdAt <= :endTime
+        GROUP BY date
+        ORDER BY date ASC
+    """)
+    fun getDailyStatisticsFlow(startTime: Long, endTime: Long): Flow<List<DailyStatsResult>>
+
+    /**
+     * Get top applications by notification count
+     * Groups by package name and counts notifications
+     */
+    @Query("""
+        SELECT 
+            packageName,
+            appName,
+            COUNT(*) as count
+        FROM notification_queue
+        WHERE createdAt >= :startTime AND createdAt <= :endTime
+        GROUP BY packageName, appName
+        ORDER BY count DESC
+        LIMIT :limit
+    """)
+    fun getTopApplicationsFlow(startTime: Long, endTime: Long, limit: Int): Flow<List<AppCountResult>>
 }

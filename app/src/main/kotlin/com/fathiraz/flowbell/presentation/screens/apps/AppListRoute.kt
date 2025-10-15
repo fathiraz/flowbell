@@ -171,9 +171,9 @@ fun AppListRoute(
                 // Show System Apps toggle
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(8.dp)
                 ) {
                     Row(
                         modifier = Modifier
@@ -274,10 +274,10 @@ private fun AppListItem(
             .fillMaxWidth()
             .clickable { onClick() }, // Card click navigates to details
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        shape = RoundedCornerShape(12.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(8.dp)
     ) {
         Row(
             modifier = Modifier

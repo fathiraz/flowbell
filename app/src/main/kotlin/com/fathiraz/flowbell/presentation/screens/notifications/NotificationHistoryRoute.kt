@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.snapshotFlow
@@ -126,13 +128,69 @@ fun NotificationHistoryRoute(
 
         // Search bar
         OutlinedTextField(
-            value = "",
-            onValueChange = { },
-            placeholder = { Text("Search notifications...") },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+            value = uiState.searchQuery,
+            onValueChange = { query ->
+                viewModel.onEvent(HistoryEvent.SearchQueryChanged(query))
+            },
+            placeholder = { Text("Search by app name or title...") },
+            leadingIcon = { 
+                Icon(
+                    Icons.Default.Search, 
+                    contentDescription = "Search",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                ) 
+            },
+            trailingIcon = {
+                if (uiState.searchQuery.isNotEmpty()) {
+                    IconButton(
+                        onClick = { viewModel.onEvent(HistoryEvent.ClearSearch) }
+                    ) {
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Clear search",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            },
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(16.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
+            )
         )
+
+        // Filter chips
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            val filters = listOf(
+                NotificationFilter.All to "All",
+                NotificationFilter.Sent to "Sent", 
+                NotificationFilter.Failed to "Failed"
+            )
+            
+            filters.forEach { (filter, label) ->
+                val isSelected = uiState.selectedFilter == filter
+                FilterChip(
+                    onClick = { 
+                        viewModel.onEvent(HistoryEvent.FilterSelected(filter))
+                    },
+                    label = { 
+                        Text(
+                            text = label,
+                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium
+                        )
+                    },
+                    selected = isSelected,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+            }
+        }
 
         // Loading, empty state, or notifications list
         when {
@@ -142,7 +200,24 @@ fun NotificationHistoryRoute(
             }
 
             uiState.filteredLogs.isEmpty() -> {
-                // Empty state
+                // Empty state with contextual messages
+                val (title, subtitle) = when {
+                    uiState.searchQuery.isNotEmpty() -> {
+                        "No notifications found" to "Try adjusting your search terms"
+                    }
+                    uiState.selectedFilter != null && uiState.selectedFilter != NotificationFilter.All -> {
+                        val filterName = when (uiState.selectedFilter) {
+                            NotificationFilter.Sent -> "sent"
+                            NotificationFilter.Failed -> "failed"
+                            else -> "filtered"
+                        }
+                        "No $filterName notifications" to "Try selecting a different filter"
+                    }
+                    else -> {
+                        "No notifications yet" to "Notification history will appear here once you start receiving notifications"
+                    }
+                }
+                
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -153,17 +228,19 @@ fun NotificationHistoryRoute(
                     Icon(
                         Icons.Default.History,
                         contentDescription = "No history",
-                        modifier = Modifier.size(64.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                        modifier = Modifier.size(80.dp),
+                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "No notifications yet",
+                        text = title,
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.Medium
                     )
+                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Notification history will appear here once you start receiving notifications",
+                        text = subtitle,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         textAlign = TextAlign.Center
@@ -239,119 +316,100 @@ private fun NotificationHistoryCard(
             .fillMaxWidth()
             .clickable { onClick() },
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(8.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp), // Reduced padding for more compact layout
-            horizontalArrangement = Arrangement.spacedBy(12.dp), // Reduced spacing
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // App package icon
+            // Large app icon (left)
             MediumPackageIcon(
                 packageName = notification.packageName,
                 appName = notification.appName,
-                modifier = Modifier.size(40.dp) // Slightly smaller icon for compact layout
+                modifier = Modifier.size(56.dp)
             )
 
+            // Content column (middle, weight = 1f)
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(6.dp) // Reduced spacing for compact layout
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = notification.notificationTitle.takeIf { it.isNotEmpty() } ?: "Notification",
-                        style = MaterialTheme.typography.titleMedium, // Changed to titleMedium for better hierarchy
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.weight(1f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-
-                    val statusColor = when (notification.status.name.lowercase()) {
-                        "sent" -> Color(0xFF4CAF50)
-                        "failed" -> Color(0xFFF44336)
-                        "pending" -> Color(0xFFFF9800)
-                        else -> Color(0xFF757575)
-                    }
-
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = statusColor),
-                        modifier = Modifier.padding(start = 12.dp),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text(
-                            text = notification.status.name,
-                            color = Color.White,
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-                        )
-                    }
-                }
-
+                // App name (bold, titleMedium)
+                Text(
+                    text = notification.appName,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                
+                // Notification title (bodyLarge, 1 line, ellipsis)
+                Text(
+                    text = notification.notificationTitle.takeIf { it.isNotEmpty() } ?: "Notification",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                
+                // Notification text (bodyMedium, gray, 1 line, ellipsis)
                 Text(
                     text = notification.notificationText.takeIf { it.isNotEmpty() } ?: "No content",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    lineHeight = 20.sp // Added line height for better readability
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
+                
+                // Timestamp at bottom (caption, lighter gray)
+                Text(
+                    text = formattedTime,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    fontWeight = FontWeight.Medium
+                )
+            }
 
+            // Status badge (right, vertical alignment center)
+            val (statusColor, statusBackgroundColor) = when (notification.status.name.lowercase()) {
+                "sent" -> Color(0xFF4CAF50) to Color(0xFF4CAF50).copy(alpha = 0.1f)
+                "failed" -> Color(0xFFF44336) to Color(0xFFF44336).copy(alpha = 0.1f)
+                "pending" -> Color(0xFFFF9800) to Color(0xFFFF9800).copy(alpha = 0.1f)
+                else -> Color(0xFF757575) to Color(0xFF757575).copy(alpha = 0.1f)
+            }
+
+            Card(
+                colors = CardDefaults.cardColors(containerColor = statusBackgroundColor),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.padding(start = 8.dp)
+            ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = formattedTime,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Text(
-                            text = "•",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = notification.appName,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                    // Status dot
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .background(statusColor, RoundedCornerShape(4.dp))
+                    )
                     
-                    if (notification.httpDetails != null) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Text(
-                                text = "•",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            Text(
-                                text = "HTTP details available",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-                    }
+                    // Status text
+                    Text(
+                        text = notification.status.name,
+                        color = statusColor,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
             }
         }
@@ -368,11 +426,13 @@ private fun NotificationDetailBottomSheet(
         dateFormat.format(Date(notification.timestamp))
     }
 
+    val scrollState = rememberScrollState()
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .verticalScroll(scrollState)
             .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         // Header
         Row(
@@ -392,18 +452,29 @@ private fun NotificationDetailBottomSheet(
 
         HorizontalDivider()
 
-        // Notification details
-        DetailRow("Title", notification.notificationTitle.takeIf { it.isNotEmpty() } ?: "No title")
-        DetailRow("Content", notification.notificationText.takeIf { it.isNotEmpty() } ?: "No content")
-        DetailRow("App", "${notification.appName} (${notification.packageName})")
-        DetailRow("Time", formattedTime)
-        DetailRow("Status", notification.status.name)
+        // Notification details section
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            ),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                DetailRow("Title", notification.notificationTitle.takeIf { it.isNotEmpty() } ?: "No title")
+                DetailRow("Content", notification.notificationText.takeIf { it.isNotEmpty() } ?: "No content")
+                DetailRow("App", "${notification.appName} (${notification.packageName})")
+                DetailRow("Time", formattedTime)
+                DetailRow("Status", notification.status.name)
 
-        if (notification.errorMessage != null) {
-            DetailRow("Error", notification.errorMessage!!)
+                if (notification.errorMessage != null) {
+                    HorizontalDivider()
+                    DetailRow("Error", notification.errorMessage!!)
+                }
+            }
         }
-
-        HorizontalDivider()
 
         // HTTP details section
         Text(
@@ -415,11 +486,12 @@ private fun NotificationDetailBottomSheet(
         Card(
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant
-            )
+            ),
+            shape = RoundedCornerShape(16.dp)
         ) {
             Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 notification.httpDetails?.let { httpDetails ->
                     DetailRow("URL", httpDetails.requestUrl)
@@ -428,6 +500,7 @@ private fun NotificationDetailBottomSheet(
                     DetailRow("Response Time", "${httpDetails.duration}ms")
 
                     if (httpDetails.responseBody?.isNotEmpty() == true) {
+                        HorizontalDivider()
                         DetailRow("Response", httpDetails.responseBody!!.take(200) + if (httpDetails.responseBody!!.length > 200) "..." else "")
                     }
                 } ?: run {
@@ -442,7 +515,8 @@ private fun NotificationDetailBottomSheet(
 
         Button(
             onClick = onDismiss,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp)
         ) {
             Text("Close")
         }
@@ -487,56 +561,41 @@ private fun HistorySkeleton() {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
                     ),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(8.dp)
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // App icon skeleton
-                        SkeletonLoader(width = 40.dp, height = 40.dp, cornerRadius = 12.dp)
+                        // Large app icon skeleton (56dp)
+                        SkeletonLoader(width = 56.dp, height = 56.dp, cornerRadius = 12.dp)
 
+                        // Content column skeleton
                         Column(
                             modifier = Modifier.weight(1f),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            // Title and status row
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                SkeletonLoader(width = 140.dp, height = 16.dp)
-                                SkeletonLoader(width = 60.dp, height = 24.dp, cornerRadius = 12.dp)
-                            }
-
-                            // Content text skeleton
-                            SkeletonLoader(width = 180.dp, height = 14.dp)
-                            SkeletonLoader(width = 220.dp, height = 14.dp)
-
-                            // Footer row skeleton
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    SkeletonLoader(width = 80.dp, height = 12.dp)
-                                    SkeletonLoader(width = 4.dp, height = 12.dp)
-                                    SkeletonLoader(width = 100.dp, height = 12.dp)
-                                }
-                                SkeletonLoader(width = 120.dp, height = 12.dp)
-                            }
+                            // App name skeleton
+                            SkeletonLoader(width = 120.dp, height = 20.dp)
+                            
+                            // Notification title skeleton
+                            SkeletonLoader(width = 180.dp, height = 18.dp)
+                            
+                            // Notification text skeleton
+                            SkeletonLoader(width = 160.dp, height = 16.dp)
+                            
+                            // Timestamp skeleton
+                            SkeletonLoader(width = 80.dp, height = 14.dp)
                         }
+
+                        // Status badge skeleton (right)
+                        SkeletonLoader(width = 70.dp, height = 32.dp, cornerRadius = 12.dp)
                     }
                 }
             }

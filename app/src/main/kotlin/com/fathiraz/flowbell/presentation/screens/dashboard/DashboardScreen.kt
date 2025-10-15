@@ -2,12 +2,22 @@ package com.fathiraz.flowbell.presentation.screens.dashboard
 
 import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -50,6 +60,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -77,7 +90,6 @@ fun DashboardScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
-    var selectedTimePeriod by remember { mutableStateOf("Today") }
     val pullToRefreshState = rememberPullToRefreshState()
 
     PullToRefreshBox(
@@ -180,31 +192,6 @@ fun DashboardScreen(
             }
         }
 
-        // Time period tabs
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            val periods = listOf("Today", "This Week", "This Month", "All Time")
-            periods.forEach { period ->
-                val isSelected = selectedTimePeriod == period
-                Box(
-                    modifier = Modifier
-                        .clickable { selectedTimePeriod = period }
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = period,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
 
         // Action buttons - only show if debug mode is enabled
         if (uiState.isDebugModeEnabled) {
@@ -288,38 +275,39 @@ fun DashboardScreen(
                 }
             }
             else -> {
-                // Statistics grid
+                // Statistics grid - Modernized 2x2 bento layout
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     // Total card
                     Card(
                         modifier = Modifier.weight(1f),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                        shape = RoundedCornerShape(12.dp)
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        shape = RoundedCornerShape(16.dp)
                     ) {
                         Column(
-                            modifier = Modifier.padding(16.dp),
+                            modifier = Modifier.padding(20.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Icon(
                                 Icons.Default.Dashboard,
                                 contentDescription = "Total",
                                 tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(24.dp)
+                                modifier = Modifier.size(28.dp)
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(12.dp))
                             Text(
                                 text = uiState.statistics.totalNotifications.toString(),
-                                style = MaterialTheme.typography.headlineLarge,
+                                style = MaterialTheme.typography.displaySmall,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
+                            Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = "Total",
-                                style = MaterialTheme.typography.bodyMedium,
+                                style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -328,30 +316,31 @@ fun DashboardScreen(
                     // Success card
                     Card(
                         modifier = Modifier.weight(1f),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                        shape = RoundedCornerShape(12.dp)
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        shape = RoundedCornerShape(16.dp)
                     ) {
                         Column(
-                            modifier = Modifier.padding(16.dp),
+                            modifier = Modifier.padding(20.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Icon(
                                 Icons.Default.Check,
                                 contentDescription = "Success",
                                 tint = Color(0xFF4CAF50),
-                                modifier = Modifier.size(24.dp)
+                                modifier = Modifier.size(28.dp)
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(12.dp))
                             Text(
                                 text = uiState.statistics.successfulDeliveries.toString(),
-                                style = MaterialTheme.typography.headlineLarge,
+                                style = MaterialTheme.typography.displaySmall,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
+                            Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = "Success",
-                                style = MaterialTheme.typography.bodyMedium,
+                                style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -362,35 +351,36 @@ fun DashboardScreen(
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     // Failed card
                     Card(
                         modifier = Modifier.weight(1f),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                        shape = RoundedCornerShape(12.dp)
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        shape = RoundedCornerShape(16.dp)
                     ) {
                         Column(
-                            modifier = Modifier.padding(16.dp),
+                            modifier = Modifier.padding(20.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Icon(
                                 Icons.Default.Warning,
                                 contentDescription = "Failed",
                                 tint = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.size(24.dp)
+                                modifier = Modifier.size(28.dp)
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(12.dp))
                             Text(
                                 text = uiState.statistics.failedDeliveries.toString(),
-                                style = MaterialTheme.typography.headlineLarge,
+                                style = MaterialTheme.typography.displaySmall,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
+                            Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = "Failed",
-                                style = MaterialTheme.typography.bodyMedium,
+                                style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -399,30 +389,31 @@ fun DashboardScreen(
                     // Pending card
                     Card(
                         modifier = Modifier.weight(1f),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                        shape = RoundedCornerShape(12.dp)
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        shape = RoundedCornerShape(16.dp)
                     ) {
                         Column(
-                            modifier = Modifier.padding(16.dp),
+                            modifier = Modifier.padding(20.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Icon(
                                 Icons.Default.MoreHoriz,
                                 contentDescription = "Pending",
                                 tint = Color(0xFFFF9800),
-                                modifier = Modifier.size(24.dp)
+                                modifier = Modifier.size(28.dp)
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(12.dp))
                             Text(
-                                text = "0", // TODO: Add pending count to statistics
-                                style = MaterialTheme.typography.headlineLarge,
+                                text = uiState.statistics.pending.toString(),
+                                style = MaterialTheme.typography.displaySmall,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
+                            Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = "Pending",
-                                style = MaterialTheme.typography.bodyMedium,
+                                style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -476,7 +467,7 @@ fun DashboardScreen(
                 // Queue Health
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    colors = CardDefaults.cardColors(containerColor = com.fathiraz.flowbell.presentation.theme.ModernColors.FlatCardBackground),
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                     shape = RoundedCornerShape(12.dp)
                 ) {
@@ -514,8 +505,71 @@ fun DashboardScreen(
                     }
                 }
 
-                // Recent Activity Section
                 Spacer(modifier = Modifier.height(16.dp))
+
+                // Time period selector - Modern pill-shaped buttons
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    val periods = listOf("24 Hours", "7 Days", "30 Days")
+                    periods.forEach { period ->
+                        val isSelected = uiState.selectedTimePeriod == period
+                        Box(
+                            modifier = Modifier
+                                .clickable { viewModel.selectTimePeriod(period) }
+                                .background(
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                    shape = RoundedCornerShape(20.dp)
+                                )
+                                .border(
+                                    width = 1.dp,
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                                    shape = RoundedCornerShape(20.dp)
+                                )
+                                .padding(horizontal = 16.dp, vertical = 10.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = period,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Notification Trends Chart - Only show if data is available
+                if (uiState.trendData.isNotEmpty()) {
+                    AnimatedVisibility(
+                        visible = !uiState.isLoading,
+                        enter = fadeIn() + slideInVertically(initialOffsetY = { it / 3 })
+                    ) {
+                        NotificationTrendsCard(
+                            trendData = uiState.trendData,
+                            totalNotifications = uiState.statistics.totalNotifications
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                // Top Applications Card - Only show if data is available
+                if (uiState.topApplications.isNotEmpty()) {
+                    AnimatedVisibility(
+                        visible = !uiState.isLoading,
+                        enter = fadeIn() + slideInVertically(initialOffsetY = { it / 3 })
+                    ) {
+                        TopApplicationsCard(
+                            topApplications = uiState.topApplications
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                // Recent Activity Section
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -569,7 +623,7 @@ fun DashboardScreen(
                                     restoreState = true
                                 }
                             },
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Column(
@@ -629,6 +683,327 @@ fun DashboardScreen(
     }}
 
 @Composable
+private fun NotificationTrendsCard(
+    trendData: List<Int>,
+    totalNotifications: Int,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp)
+        ) {
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = "Notifications Sent",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "Last 7 Days",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                
+                Column(
+                    horizontalAlignment = Alignment.End
+                ) {
+                    Text(
+                        text = trendData.sum().toString(),
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    // Calculate percentage change if we have enough data
+                    val percentageChange = if (trendData.size >= 2) {
+                        val currentWeek = trendData.takeLast(3).sum() // Last 3 days
+                        val previousWeek = trendData.dropLast(3).take(3).sum() // Previous 3 days
+                        if (previousWeek > 0) {
+                            ((currentWeek - previousWeek).toFloat() / previousWeek * 100)
+                        } else 0f
+                    } else 0f
+                    
+                    if (percentageChange != 0f) {
+                        Text(
+                            text = "${if (percentageChange > 0) "+" else ""}${String.format("%.1f", percentageChange)}%",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = if (percentageChange > 0) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Chart or Empty State
+            if (trendData.isNotEmpty()) {
+                val primaryColor = MaterialTheme.colorScheme.primary
+                val gradientStartColor = primaryColor.copy(alpha = 0.3f)
+                val gradientEndColor = primaryColor.copy(alpha = 0.05f)
+                
+                Canvas(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp)
+                ) {
+                    drawTrendChart(
+                        data = trendData,
+                        lineColor = primaryColor,
+                        gradientStartColor = gradientStartColor,
+                        gradientEndColor = gradientEndColor
+                    )
+                }
+            } else {
+                // Empty state for chart
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.TrendingUp,
+                            contentDescription = "No trend data",
+                            modifier = Modifier.size(32.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                        )
+                        Text(
+                            text = "No trend data available",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TopApplicationsCard(
+    topApplications: List<AppStatistic>,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp)
+        ) {
+            // Header
+            Column {
+                Text(
+                    text = "Top 5 Applications",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "Last 7 Days",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // App list or Empty State
+            if (topApplications.isNotEmpty()) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    topApplications.forEach { app ->
+                        AppStatisticRow(app = app)
+                    }
+                }
+            } else {
+                // Empty state for top applications
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Dashboard,
+                            contentDescription = "No app data",
+                            modifier = Modifier.size(32.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                        )
+                        Text(
+                            text = "No application data available",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AppStatisticRow(
+    app: AppStatistic,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // App icon placeholder
+        Box(
+            modifier = Modifier
+                .size(24.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                    shape = CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = app.appName.take(1).uppercase(),
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+        
+        // App name
+        Text(
+            text = app.appName,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f)
+        )
+        
+        // Progress bar
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(8.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                    shape = RoundedCornerShape(4.dp)
+                )
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(app.percentage / 100f)
+                    .background(
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = RoundedCornerShape(4.dp)
+                    )
+            )
+        }
+        
+        // Count
+        Text(
+            text = app.count.toString(),
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+    }
+}
+
+private fun DrawScope.drawTrendChart(
+    data: List<Int>,
+    lineColor: Color,
+    gradientStartColor: Color,
+    gradientEndColor: Color
+) {
+    if (data.isEmpty()) return
+    
+    val maxValue = data.maxOrNull() ?: 1
+    val minValue = data.minOrNull() ?: 0
+    val valueRange = maxValue - minValue
+    
+    val chartWidth = size.width
+    val chartHeight = size.height
+    val padding = 16.dp.toPx()
+    
+    val stepX = (chartWidth - 2 * padding) / (data.size - 1)
+    
+    // Create path for the line
+    val path = Path()
+    val fillPath = Path()
+    var lastY = 0f
+    
+    data.forEachIndexed { index, value ->
+        val x = padding + index * stepX
+        val normalizedValue = if (valueRange > 0) (value - minValue).toFloat() / valueRange else 0.5f
+        val y = chartHeight - padding - (normalizedValue * (chartHeight - 2 * padding))
+        
+        if (index == 0) {
+            path.moveTo(x, y)
+            fillPath.moveTo(x, chartHeight - padding)
+            fillPath.lineTo(x, y)
+            lastY = y
+        } else {
+            // Use cubic bezier for smooth curves
+            val prevX = padding + (index - 1) * stepX
+            val controlX1 = prevX + stepX * 0.3f
+            val controlX2 = x - stepX * 0.3f
+            path.cubicTo(controlX1, lastY, controlX2, y, x, y)
+            fillPath.cubicTo(controlX1, lastY, controlX2, y, x, y)
+            lastY = y
+        }
+    }
+    
+    // Close the fill path
+    fillPath.lineTo(chartWidth - padding, chartHeight - padding)
+    fillPath.close()
+    
+    // Draw gradient fill
+    val gradient = Brush.verticalGradient(
+        colors = listOf(gradientStartColor, gradientEndColor),
+        startY = 0f,
+        endY = chartHeight
+    )
+    
+    clipPath(fillPath) {
+        drawRect(gradient)
+    }
+    
+    // Draw the line
+    drawPath(
+        path = path,
+        color = lineColor,
+        style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
+    )
+}
+
+@Composable
 private fun StatCard(
     title: String,
     value: String,
@@ -667,7 +1042,7 @@ private fun RecentActivityItem(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         shape = RoundedCornerShape(8.dp)
     ) {
@@ -747,7 +1122,7 @@ private fun DashboardSkeleton() {
                 repeat(3) { index ->
                     Card(
                         modifier = Modifier.weight(1f),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                         shape = RoundedCornerShape(12.dp)
                     ) {
@@ -827,7 +1202,7 @@ private fun DashboardSkeleton() {
                     ) {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
                             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                             shape = RoundedCornerShape(8.dp)
                         ) {

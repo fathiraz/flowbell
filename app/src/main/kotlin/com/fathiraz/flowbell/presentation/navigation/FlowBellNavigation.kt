@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.Webhook
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,6 +32,7 @@ import com.fathiraz.flowbell.presentation.screens.permissions.PermissionRoute
 import com.fathiraz.flowbell.presentation.screens.settings.SettingsRoute
 import com.fathiraz.flowbell.presentation.screens.webhook.WebhookMainScreen
 import com.fathiraz.flowbell.presentation.screens.webhook.WebhookEditScreen
+import com.fathiraz.flowbell.presentation.theme.ModernColors
 
 data class NavigationItem(
     val route: String,
@@ -54,7 +56,10 @@ fun FlowBellNavigation(navController: NavHostController, themePreferences: Theme
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
-            NavigationBar {
+            NavigationBar(
+                containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surface,
+                contentColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface
+            ) {
                 navigationItems.forEach { item ->
                     NavigationBarItem(
                         icon = { Icon(item.icon, contentDescription = item.title) },
@@ -68,7 +73,14 @@ fun FlowBellNavigation(navController: NavHostController, themePreferences: Theme
                                 launchSingleTop = true
                                 restoreState = true
                             }
-                        }
+                        },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = androidx.compose.material3.MaterialTheme.colorScheme.primary,
+                            selectedTextColor = androidx.compose.material3.MaterialTheme.colorScheme.primary,
+                            unselectedIconColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
+                            unselectedTextColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
+                            indicatorColor = androidx.compose.material3.MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                        )
                     )
                 }
             }

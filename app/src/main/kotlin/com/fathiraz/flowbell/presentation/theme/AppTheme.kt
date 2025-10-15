@@ -46,6 +46,10 @@ object ModernColors {
     val Gray700 = Color(0xFF374151)
     val Gray800 = Color(0xFF1F2937)
     val Gray900 = Color(0xFF111827)
+
+    // Flat modern colors
+    val FlatCardBackground = Color(0xFFDFE6E9) // Light grayish-blue for cards
+    val FlatNavBackground = Color(0xFFF5F6FA)  // Very light gray for nav bar
 }
 
 // 2025 Modern Banking Design & Minimalist Dark Mode
@@ -75,6 +79,7 @@ private val DarkColorScheme = darkColorScheme(
     onSurface = Color(0xFFFFFFFF), // Pure white text
     surfaceVariant = Color(0xFF2C2C2E), // Slightly lighter - Flat variant
     onSurfaceVariant = Color(0xFF8E8E93), // iOS secondary label - Subtle
+    surfaceContainer = Color(0xFF2C2C2E), // Dark flat card background
     
     // Error colors - Clean error
     error = Color(0xFFFF3B30), // iOS Red - Clean error
@@ -119,6 +124,7 @@ private val LightColorScheme = lightColorScheme(
     onSurface = Color(0xFF1A1A1A), // Near black text
     surfaceVariant = Color(0xFFF5F5F5), // Light gray - Modern variant
     onSurfaceVariant = Color(0xFF6B7280), // Modern gray - Better accessibility
+    surfaceContainer = ModernColors.FlatCardBackground, // Flat card background
     
     // Error colors - Clean error
     error = Color(0xFFFF3B30), // iOS Red - Clean error

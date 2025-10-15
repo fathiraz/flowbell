@@ -44,22 +44,26 @@ class DashboardViewModel(
     fun loadStatistics() {
         viewModelScope.launch {
             try {
-                android.util.Log.d("DashboardViewModel", "🔄 Setting up real-time statistics monitoring")
+                android.util.Log.d("DashboardViewModel", "🔄 Loading statistics for period: ${_uiState.value.selectedTimePeriod}")
                 _uiState.value = _uiState.value.copy(isLoading = true)
 
                 // Get real statistics from repository with real-time updates
                 statisticsRepository.getNotificationStatistics().collect { statistics ->
-                    android.util.Log.d("DashboardViewModel", "📊 Real-time statistics update: ${statistics.totalNotifications} total, ${statistics.successfulDeliveries} successful")
+                    android.util.Log.d("DashboardViewModel", "📊 Statistics: ${statistics.totalNotifications} total, dailyStats=${statistics.dailyStats.size}, topApps=${statistics.topApps.size}")
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         statistics = statistics,
                         errorMessage = null
                     )
                     
-                    Timber.d("Dashboard statistics updated: ${statistics.totalNotifications} total notifications")
+                    // Calculate trend data and top applications
+                    calculateTrendData()
+                    calculateTopApplications()
+                    
+                    Timber.d("Dashboard statistics updated with ${statistics.dailyStats.size} daily stats and ${statistics.topApps.size} top apps")
                 }
             } catch (e: Exception) {
-                android.util.Log.e("DashboardViewModel", "❌ Error in real-time statistics", e)
+                android.util.Log.e("DashboardViewModel", "❌ Error loading statistics", e)
                 Timber.e(e, "Failed to load dashboard statistics")
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
@@ -72,6 +76,57 @@ class DashboardViewModel(
     fun updatePeriod(period: String) {
         // _selectedPeriod.value = period
         loadStatistics()
+    }
+
+    fun selectTimePeriod(period: String) {
+        _uiState.value = _uiState.value.copy(selectedTimePeriod = period)
+        loadStatistics() // Reload with new period
+    }
+
+    private fun calculateTrendData() {
+        val period = _uiState.value.selectedTimePeriod
+        val days = when (period) {
+            "24 Hours" -> 1
+            "7 Days" -> 7
+            "30 Days" -> 30
+            else -> 7 // Default to 7 days
+        }
+        
+        val dailyStats = _uiState.value.statistics.dailyStats
+        val trendData = if (dailyStats.isNotEmpty()) {
+            // Get data for the selected period, pad with zeros if needed
+            val dataPoints = dailyStats.takeLast(days).map { it.totalNotifications }
+            // Pad with zeros if we don't have enough data
+            if (dataPoints.size < days) {
+                List(days - dataPoints.size) { 0 } + dataPoints
+            } else {
+                dataPoints
+            }
+        } else {
+            // Return zeros for empty data
+            List(days) { 0 }
+        }
+        _uiState.value = _uiState.value.copy(trendData = trendData)
+    }
+
+    private fun calculateTopApplications() {
+        val topApps = _uiState.value.statistics.topApps
+        val totalCount = topApps.sumOf { it.count }
+        
+        val appStatistics = if (topApps.isNotEmpty()) {
+            topApps.take(5).map { app ->
+                AppStatistic(
+                    appName = app.appName,
+                    packageName = app.packageName,
+                    count = app.count,
+                    percentage = if (totalCount > 0) (app.count.toFloat() / totalCount) * 100 else 0f
+                )
+            }
+        } else {
+            // Return empty list if no real data available
+            emptyList()
+        }
+        _uiState.value = _uiState.value.copy(topApplications = appStatistics)
     }
 
     private fun loadRecentActivity() {
@@ -146,5 +201,16 @@ data class DashboardUiState(
     val statistics: NotificationStatistics = NotificationStatistics(),
     val recentActivity: List<NotificationLog> = emptyList(),
     val errorMessage: String? = null,
-    val isDebugModeEnabled: Boolean = false
+    val isDebugModeEnabled: Boolean = false,
+    val selectedTimePeriod: String = "7 Days",
+    val trendData: List<Int> = emptyList(),
+    val topApplications: List<AppStatistic> = emptyList()
+)
+
+@androidx.compose.runtime.Immutable
+data class AppStatistic(
+    val appName: String,
+    val packageName: String,
+    val count: Int,
+    val percentage: Float
 )

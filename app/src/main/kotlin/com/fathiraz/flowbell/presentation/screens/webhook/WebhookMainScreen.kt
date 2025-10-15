@@ -1,5 +1,6 @@
 package com.fathiraz.flowbell.presentation.screens.webhook
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,6 +29,7 @@ fun WebhookMainScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surface)
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
