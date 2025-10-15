@@ -1,7 +1,7 @@
 package com.fathiraz.flowbell
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import androidx.fragment.app.FragmentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,7 +28,7 @@ import com.fathiraz.flowbell.presentation.theme.AppTheme
 import org.koin.androidx.compose.koinViewModel
 import com.fathiraz.flowbell.core.utils.LoggerUtils
 
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)

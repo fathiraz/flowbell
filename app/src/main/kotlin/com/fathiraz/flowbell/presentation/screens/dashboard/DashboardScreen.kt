@@ -1,6 +1,7 @@
 package com.fathiraz.flowbell.presentation.screens.dashboard
 
 import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -74,10 +75,13 @@ import androidx.navigation.NavController
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import com.chuckerteam.chucker.api.Chucker
+import com.fathiraz.flowbell.core.utils.LoggerUtils
 import com.fathiraz.flowbell.domain.entities.NotificationLog
+import com.pandulapeter.beagle.Beagle
 import com.fathiraz.flowbell.domain.entities.NotificationQueueStatus
 import com.fathiraz.flowbell.presentation.components.SkeletonLoader
 import com.fathiraz.flowbell.presentation.components.AnimatedListItem
+import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -143,7 +147,15 @@ fun DashboardScreen(
                 if (uiState.isDebugModeEnabled) {
                     IconButton(
                         onClick = {
-                            context.startActivity(Chucker.getLaunchIntent(context))
+                            try {
+                                val intent = Chucker.getLaunchIntent(context)
+                                // Add FLAG_ACTIVITY_NEW_TASK for compatibility with all Android versions
+                                // Especially important on Android 10+ when launching from non-Activity contexts
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                context.startActivity(intent)
+                            } catch (e: Exception) {
+                                Timber.e(e, "Failed to launch Chucker HTTP inspector")
+                            }
                         }
                     ) {
                         Icon(
@@ -155,25 +167,21 @@ fun DashboardScreen(
                     }
                 }
 
-                // Hyperion debug button - only show if debug mode is enabled
+                // Beagle debug menu button - only show if debug mode is enabled
                 if (uiState.isDebugModeEnabled) {
                     IconButton(
                         onClick = {
                             try {
-                                // Use reflection to avoid compile-time dependency in release builds
-                                val hyperionClass = Class.forName("com.willowtreeapps.hyperion.core.Hyperion")
-                                val openMethod = hyperionClass.getMethod("open", android.app.Activity::class.java)
-                                if (context is android.app.Activity) {
-                                    openMethod.invoke(null, context)
-                                }
+                                Beagle.show()
+                                LoggerUtils.App.d("Beagle debug drawer opened")
                             } catch (e: Exception) {
-                                // Hyperion not available in release build
+                                Timber.e(e, "Failed to open Beagle debug menu")
                             }
                         }
                     ) {
                         Icon(
                             Icons.Default.BugReport,
-                            contentDescription = "Debug",
+                            contentDescription = "Debug Menu",
                             tint = MaterialTheme.colorScheme.secondary,
                             modifier = Modifier.size(24.dp)
                         )

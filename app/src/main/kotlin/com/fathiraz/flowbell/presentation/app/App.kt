@@ -15,6 +15,23 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 import timber.log.Timber
 import com.fathiraz.flowbell.core.utils.LoggerUtils
+import com.fathiraz.flowbell.BuildConfig
+
+// Beagle debug menu imports (noop in release builds)
+import com.pandulapeter.beagle.Beagle
+import com.pandulapeter.beagle.modules.AppInfoButtonModule
+import com.pandulapeter.beagle.modules.DeveloperOptionsButtonModule
+import com.pandulapeter.beagle.modules.DeviceInfoModule
+import com.pandulapeter.beagle.modules.KeylineOverlaySwitchModule
+import com.pandulapeter.beagle.modules.AnimationDurationSwitchModule
+import com.pandulapeter.beagle.modules.ScreenCaptureToolboxModule
+import com.pandulapeter.beagle.modules.LogListModule
+import com.pandulapeter.beagle.modules.LifecycleLogListModule
+import com.pandulapeter.beagle.modules.HeaderModule
+import com.pandulapeter.beagle.modules.PaddingModule
+import com.pandulapeter.beagle.modules.TextModule
+import com.pandulapeter.beagle.modules.DividerModule
+import com.pandulapeter.beagle.modules.NetworkLogListModule
 
 class App : Application() {
   override fun onCreate() {
@@ -23,7 +40,7 @@ class App : Application() {
     // Initialize Timber with Crashlytics integration
     initializeTimber()
 
-    // Initialize debug tools (Chucker, Hyperion)
+    // Initialize debug tools (Chucker, Beagle)
     DebugToolsManager.initialize(this)
 
     // Initialize Koin
@@ -33,9 +50,8 @@ class App : Application() {
     }
     LoggerUtils.App.d("Koin initialized")
 
-    // Hyperion debugging tools initialize automatically in debug builds
-    // Shake device or call Hyperion.open(activity) to access debugging drawer
-    LoggerUtils.App.d("Hyperion debugging tools available (shake to activate)")
+    // Initialize Beagle debug menu
+    initializeBeagle()
 
     // Initialize WorkManager for batch notification processing
     initializeWorkManager()
@@ -55,6 +71,47 @@ class App : Application() {
     // }
   }
 
+
+  private fun initializeBeagle() {
+    try {
+      // Initialize Beagle with Application context
+      Beagle.initialize(application = this)
+      LoggerUtils.App.d("Beagle initialized successfully")
+      
+      // Configure Beagle modules
+      Beagle.set(
+        HeaderModule(
+          title = "FlowBell",
+          subtitle = "com.fathiraz.flowbell",
+          text = "Debug v${BuildConfig.VERSION_NAME}"
+        ),
+        AppInfoButtonModule(),
+        DeveloperOptionsButtonModule(),
+        PaddingModule(),
+        TextModule("Device & System", TextModule.Type.SECTION_HEADER),
+        DeviceInfoModule(),
+        KeylineOverlaySwitchModule(),
+        AnimationDurationSwitchModule(),
+        ScreenCaptureToolboxModule(),
+        DividerModule(),
+        TextModule("Network & Logs", TextModule.Type.SECTION_HEADER),
+        NetworkLogListModule(), // Network requests
+        LogListModule(), // App logs
+        LifecycleLogListModule() // Lifecycle events
+      )
+      LoggerUtils.App.d("Beagle modules configured successfully")
+      
+      // Plant a Timber tree that forwards logs to Beagle
+      Timber.plant(object : Timber.Tree() {
+        override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
+          Beagle.log("[$tag] $message", tag ?: "App", t?.stackTraceToString())
+        }
+      })
+      LoggerUtils.App.d("Beagle Timber integration configured")
+    } catch (e: Exception) {
+      LoggerUtils.App.e("Failed to initialize Beagle", e)
+    }
+  }
 
   private fun initializeWorkManager() {
     try {

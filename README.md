@@ -47,7 +47,7 @@ FlowBell turns your Android phone into a notification bridge that you control. A
 - **Replace paid integrations**: Mirror banking, email, or messaging alerts into bots, dashboards, or automations without premium subscriptions.
 - **Own the pipeline**: Self-hosted webhook endpoint, encrypted preferences, and a local queue so you are never locked out by a third-party.
 - **Operational visibility**: Observe send success, failures, retry counts, and the most recent activity directly from the dashboard.
-- **Developer tooling first**: Chucker, Hyperion, Timber, and structured logs keep debugging fast during development and QA.
+- **Developer tooling first**: Chucker, Beagle, Timber, and structured logs keep debugging fast during development and QA.
 
 ### Who Is It For?
 - Automation builders who need webhook-friendly notification events for tools like n8n, Activepieces, Zapier, or custom workflows.
@@ -64,7 +64,7 @@ FlowBell turns your Android phone into a notification bridge that you control. A
 - 🔒 **On-device storage** – Webhook preferences, theme settings, and history stay in Room; hooks for `DataStore` or encryption are ready if you want to harden it further.
 - 📊 **Dashboards & analytics** – Dashboard surfaces totals and recent activity today; analytics screen is wired for deeper charts as the repositories grow.
 - 🔋 **Battery hints** – Utility suggests batch size and cadence tweaks based on power saver, charging state, and battery level.
-- 🛡️ **Debug tooling** – Hyperion, Timber, and Crashlytics helpers are available when you need to troubleshoot.
+- 🛡️ **Debug tooling** – Beagle debug menu, Timber, and Crashlytics helpers are available when you need to troubleshoot.
 
 ## 📸 Screenshots
 
@@ -99,7 +99,7 @@ FlowBell stays in a single Gradle module but still keeps responsibilities separa
 - **Persistence** – Room 2.6 for queue/history plus app and user preferences; `DataStoreManager` is available for more granular settings later.
 - **Networking** – OkHttp 4.12, Kotlinx Serialization 1.7, and Chucker for inspecting traffic during development.
 - **Background work** – Coroutine-driven batching today with a WorkManager worker scaffold in place for longer running jobs.
-- **Observability** – Timber for logs, optional Crashlytics, and Hyperion for in-app debugging tools.
+- **Observability** – Timber for logs, optional Crashlytics, and Beagle for in-app debugging tools.
 - **Build tooling** – Gradle Kotlin DSL, AGP 8.8, Kotlin JVM target 21, targeting Android 26–35.
 
 ## 🚀 Getting Started
@@ -134,7 +134,7 @@ FlowBell stays in a single Gradle module but still keeps responsibilities separa
 1. **Grant notification access** – When prompted, Android will jump to *Settings ▸ Notification access*. Enable FlowBell and head back to the app.
 2. **Configure the webhook** – In the Webhook tab, paste your HTTPS URL. Hit **Test** to confirm DNS and TLS before you save; the result shows latency, status code, and response snippet.
 3. **Pick the apps** – The Apps tab lists everything installed. Toggle the ones you trust, search by name, or reveal system apps if you need them.
-4. **Watch the dashboard** – Totals and recent activity update as notifications move through the queue. Shortcuts to Chucker and Hyperion are there if you need deeper debugging.
+4. **Watch the dashboard** – Totals and recent activity update as notifications move through the queue. Shortcuts to Chucker and Beagle are there if you need deeper debugging.
 5. **Review history** – The History tab streams entries as they arrive. Filter by status or app to track down failures, and use the existing scaffolding for detail views or retries.
 
 ### Webhook Payload
@@ -194,7 +194,7 @@ Payloads use UUID identifiers, include device metadata, and mirror the structure
 - [x] Run batch processing through WorkManager so bursts don’t overwhelm the device.
 - [x] Support dark theme out of the box.
 - [x] Walk new users through onboarding and ship a splash screen.
-- [x] Bundle Chucker, Hyperion, and Timber so debugging stays close at hand.
+- [x] Bundle Chucker, Beagle, and Timber so debugging stays close at hand.
 - [x] Add pull-to-refresh on dashboard, app list, and history screens.
 - [ ] Explore multi-webhook routing.
 - [ ] Allow custom payload templates.
@@ -231,4 +231,4 @@ Project Link – [https://github.com/fathiraz/flowbell](https://github.com/fathi
 - [Best-README-Template](https://github.com/othneildrew/Best-README-Template) for the structural inspiration.
 - Jetpack Compose, Koin, and Room maintainers for the foundations we build on.
 - Everyone in the automation community sharing webhook ideas and tooling.
-- Chucker & Hyperion maintainers for world-class developer diagnostics.
+- Chucker & Beagle maintainers for world-class developer diagnostics.

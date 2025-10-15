@@ -66,7 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add onboarding flow
 - Add splash screen
 - Add dark theme support
-- Add debug tooling (Chucker, Hyperion, Timber)
+- Add debug tooling (Chucker, Beagle, Timber)
 - Add Firebase Crashlytics integration
 - Add WorkManager for background processing
 - Add Room database for local storage

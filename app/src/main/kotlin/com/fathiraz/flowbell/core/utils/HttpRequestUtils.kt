@@ -6,8 +6,10 @@ import android.net.NetworkCapabilities
 import com.chuckerteam.chucker.api.ChuckerCollector
 import com.chuckerteam.chucker.api.ChuckerInterceptor
 import com.fathiraz.flowbell.domain.entities.HttpRequestResponseDetails
+import com.pandulapeter.beagle.logOkHttp.BeagleOkHttpLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -37,6 +39,11 @@ class HttpRequestUtils(private val context: Context) {
                     .alwaysReadResponseBody(false)
                     .build()
             )
+            .apply { 
+                (BeagleOkHttpLogger.logger as? Interceptor?)?.let { 
+                    addInterceptor(it) 
+                } 
+            }
             .build()
     }
 

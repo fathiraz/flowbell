@@ -61,6 +61,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     packaging {
         resources {
@@ -138,18 +139,13 @@ dependencies {
     debugImplementation(libs.compose.ui.tooling)
     debugImplementation(libs.compose.ui.test.manifest)
 
-    // Hyperion debugging tools
-    debugImplementation("com.willowtreeapps.hyperion:hyperion-core:0.9.38")
-    debugImplementation("com.willowtreeapps.hyperion:hyperion-attr:0.9.38")
-    debugImplementation("com.willowtreeapps.hyperion:hyperion-build-config:0.9.38")
-    debugImplementation("com.willowtreeapps.hyperion:hyperion-crash:0.9.38")
-    debugImplementation("com.willowtreeapps.hyperion:hyperion-disk:0.9.38")
-    debugImplementation("com.willowtreeapps.hyperion:hyperion-geiger-counter:0.9.38")
-    debugImplementation("com.willowtreeapps.hyperion:hyperion-measurement:0.9.38")
-    debugImplementation("com.willowtreeapps.hyperion:hyperion-phoenix:0.9.38")
-    debugImplementation("com.willowtreeapps.hyperion:hyperion-recorder:0.9.38")
-    debugImplementation("com.willowtreeapps.hyperion:hyperion-shared-preferences:0.9.38")
-    debugImplementation("com.willowtreeapps.hyperion:hyperion-timber:0.9.38")
+    // Beagle debugging tools (modern Hyperion replacement)
+    debugImplementation("io.github.pandulapeter.beagle:ui-drawer:2.9.10")
+    debugImplementation("io.github.pandulapeter.beagle:log:2.9.10")
+    debugImplementation("io.github.pandulapeter.beagle:log-okhttp:2.9.10")
+    releaseImplementation("io.github.pandulapeter.beagle:noop:2.9.10")
+    releaseImplementation("io.github.pandulapeter.beagle:log-noop:2.9.10")
+    releaseImplementation("io.github.pandulapeter.beagle:log-okhttp-noop:2.9.10")
 
     // Chucker HTTP inspector
     debugImplementation("com.github.chuckerteam.chucker:library:4.1.0")

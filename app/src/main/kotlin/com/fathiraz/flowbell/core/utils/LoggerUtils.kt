@@ -8,7 +8,7 @@ import timber.log.Timber
  *
  * This utility ensures all logs are captured by:
  * - Android's built-in logging system (accessible via logcat)
- * - Timber (accessible via Hyperion and other debugging tools)
+ * - Timber (accessible via Beagle debug menu and other debugging tools)
  *
  * Usage:
  * - LoggerUtils.d(tag, message) for debug logs

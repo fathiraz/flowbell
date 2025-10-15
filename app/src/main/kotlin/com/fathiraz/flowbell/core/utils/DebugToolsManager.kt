@@ -5,7 +5,7 @@ import com.chuckerteam.chucker.api.ChuckerCollector
 import timber.log.Timber
 
 /**
- * Manager for debug tools like Hyperion and Chucker
+ * Manager for debug tools (Chucker HTTP inspector and Beagle debug menu)
  * Provides centralized control over debug tool visibility and functionality
  */
 object DebugToolsManager {
@@ -61,16 +61,7 @@ object DebugToolsManager {
     fun getChuckerCollector(): ChuckerCollector? = chuckerCollector
 
     private fun enableDebugTools(context: Context) {
-        // Enable Hyperion (only available in debug builds)
-        try {
-            // Use reflection to avoid compile-time dependency in release builds
-            val hyperionClass = Class.forName("com.willowtreeapps.hyperion.core.Hyperion")
-            val enableMethod = hyperionClass.getMethod("enable")
-            enableMethod.invoke(null)
-            LoggerUtils.App.d("Hyperion enabled")
-        } catch (e: Exception) {
-            LoggerUtils.App.d("Hyperion not available (release build or missing dependency)")
-        }
+        // Beagle initializes automatically - no manual enable needed
 
         // Enable Chucker notification
         try {
@@ -88,9 +79,7 @@ object DebugToolsManager {
     }
 
     private fun disableDebugTools(context: Context) {
-        // Note: Hyperion doesn't have a direct disable method once enabled
-        // The best we can do is not open it and hide UI elements
-        LoggerUtils.App.d("Hyperion disabled (UI hidden)")
+        // Beagle handles its own lifecycle - no manual disable needed
 
         // Disable Chucker notification by recreating collector
         try {
