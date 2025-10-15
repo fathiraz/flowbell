@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] - 2025-01-27
+
+### Changed
+- Remove Hyperion library due to Android 15/16 incompatibility
+- Switch from Beagle ui-bottom-sheet to ui-drawer variant
+- Change MainActivity from ComponentActivity to FragmentActivity
+- Replace reflection-based initialization with direct Beagle imports
+
+### Added
+- Add 8 debug modules: AppInfo, DeveloperOptions, DeviceInfo, KeylineOverlay, AnimationDuration, ScreenCapture, LogList, LifecycleLog
+
+### Improved
+- Simplify debug tools implementation from 92 lines to 29 lines
+- Fix missing BuildConfig and LoggerUtils imports
+
 ## [0.1.2] - 2025-01-27
 
 ### Changed
