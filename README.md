@@ -199,8 +199,8 @@ Payloads use UUID identifiers, include device metadata, and mirror the structure
 - [ ] Explore multi-webhook routing.
 - [ ] Allow custom payload templates.
 - [x] Add a switch to show or hide debug tooling in production builds.
-- [ ] Filter words in notifications.
-- [ ] Filter words per app in notifications.
+- [x] Filter words in notifications.
+- [x] Filter words per app in notifications.
 
 ## 🛠️ Automation
 
