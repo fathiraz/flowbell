@@ -35,8 +35,12 @@ node_modules/
 /.cursor/rules/ruler_cursor_instructions.mdc.bak
 /.gemini/settings.json
 /.gemini/settings.json.bak
+/.mcp.json
+/.mcp.json.bak
 /AGENTS.md
 /AGENTS.md.bak
+/CLAUDE.md
+/CLAUDE.md.bak
 # END Ruler Generated Files
 
 # AI Configuration Files
@@ -69,3 +73,4 @@ local.properties
 # Other Files
 prd.txt
 .ruler
+.aim

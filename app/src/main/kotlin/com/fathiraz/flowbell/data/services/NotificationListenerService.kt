@@ -22,6 +22,7 @@ import com.fathiraz.flowbell.core.utils.ImageProcessorUtils
 import com.fathiraz.flowbell.core.utils.HttpRequestUtils
 import com.fathiraz.flowbell.core.utils.NotificationWorkManager
 import com.fathiraz.flowbell.core.utils.BatteryOptimizerUtils
+import com.fathiraz.flowbell.core.utils.NotificationFilterUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -164,6 +165,13 @@ class NotificationListenerService : NotificationListenerService(), KoinComponent
         val notification = sbn.notification
         val data = extractNotificationData(sbn, notification)
         
+        // Validate notification has content before processing
+        if (data.title.trim().isEmpty() || data.text.trim().isEmpty()) {
+          Timber.d("⏭️ Skipping notification with empty content from ${data.packageName}")
+          Timber.d("   Title: '${data.title}', Text: '${data.text}'")
+          return@launch
+        }
+        
         Timber.d("📱 Notification received: '${data.title}' from ${data.appName} (${data.packageName})")
         
         // Check if app is enabled for forwarding with detailed logging
@@ -176,6 +184,18 @@ class NotificationListenerService : NotificationListenerService(), KoinComponent
         if (!isAppEnabled) {
           Timber.w("❌ App ${data.packageName} is disabled for forwarding - ignoring notification")
           Timber.d("💡 To enable: Go to Apps screen and toggle ${data.appName} ON")
+          return@launch
+        }
+
+        // Get filter words for this app and global filters
+        val appFilters = appPreferencesRepository.getFilterWords(data.packageName)
+        val globalFilters = (userPreferencesRepository as com.fathiraz.flowbell.data.repositories.UserPreferencesRoomRepository).getGlobalFilterWords()
+
+        // Check if notification should be filtered
+        if (!NotificationFilterUtil.shouldAllowNotification(
+            data.title, data.text, appFilters, globalFilters
+        )) {
+          Timber.d("🚫 Notification filtered: '${data.title}' from ${data.appName}")
           return@launch
         }
 

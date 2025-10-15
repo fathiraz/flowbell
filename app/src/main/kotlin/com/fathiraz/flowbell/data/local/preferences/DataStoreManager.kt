@@ -230,6 +230,22 @@ class DataStoreManager(private val context: Context) {
     }
 
     /**
+     * Update notification filter enabled preference
+     */
+    suspend fun updateNotificationFilterEnabled(isEnabled: Boolean): Result<Unit> {
+        return try {
+            dataStore.edit { preferences ->
+                preferences[PreferenceKeys.NOTIFICATION_FILTER_ENABLED] = isEnabled
+            }
+            Timber.d("Notification filter enabled updated to: $isEnabled")
+            Result.success(Unit)
+        } catch (exception: IOException) {
+            Timber.e(exception, "Failed to update notification filter enabled preference")
+            Result.failure(exception)
+        }
+    }
+
+    /**
      * Clear webhook URL from both DataStore and fallback
      */
     suspend fun clearWebhookUrl(): Result<Unit> {
@@ -355,6 +371,7 @@ class DataStoreManager(private val context: Context) {
         val autoStartService = preferences[PreferenceKeys.AUTO_START_SERVICE] ?: false
         val isOnboardingCompleted = preferences[PreferenceKeys.IS_ONBOARDING_COMPLETED] ?: false
         val isDebugModeEnabled = preferences[PreferenceKeys.IS_DEBUG_MODE_ENABLED] ?: false
+        val notificationFilterEnabled = preferences[PreferenceKeys.NOTIFICATION_FILTER_ENABLED] ?: false
 
         return UserPreferences(
             themeMode = themeMode,
@@ -363,7 +380,8 @@ class DataStoreManager(private val context: Context) {
             webhookUrl = webhookUrl,
             autoStartService = autoStartService,
             isOnboardingCompleted = isOnboardingCompleted,
-            isDebugModeEnabled = isDebugModeEnabled
+            isDebugModeEnabled = isDebugModeEnabled,
+            notificationFilterEnabled = notificationFilterEnabled
         )
     }
 }

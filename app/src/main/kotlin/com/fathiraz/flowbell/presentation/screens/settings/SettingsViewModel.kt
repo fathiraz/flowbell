@@ -21,17 +21,20 @@ data class SettingsUiState(
     val isDarkMode: Boolean = false,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
-    val isPrivacyOptionsEnabled: Boolean = false,
     val isNotificationFiltersEnabled: Boolean = false,
-    val isDebugModeEnabled: Boolean = false
+    val isDebugModeEnabled: Boolean = false,
+    val globalFilterWords: List<String> = emptyList(),
+    val filterWordsInput: String = ""
 )
 
 sealed interface SettingsEvent {
     object ToggleTheme : SettingsEvent
-    object TogglePrivacyOptions : SettingsEvent
     object ToggleNotificationFilters : SettingsEvent
     object ToggleDebugMode : SettingsEvent
     object ClearError : SettingsEvent
+    data class UpdateFilterWordsInput(val input: String) : SettingsEvent
+    object SaveFilterWords : SettingsEvent
+    object ClearFilterWords : SettingsEvent
 }
 
 class SettingsViewModel(
@@ -61,13 +64,17 @@ class SettingsViewModel(
             userPreferencesRepository.getUserPreferences()
                 .onEach { preferences ->
                     _uiState.value = _uiState.value.copy(
-                        isDebugModeEnabled = preferences.isDebugModeEnabled
+                        isNotificationFiltersEnabled = preferences.notificationFilterEnabled,
+                        isDebugModeEnabled = preferences.isDebugModeEnabled,
+                        globalFilterWords = preferences.keywordFilters,
+                        filterWordsInput = preferences.keywordFilters.joinToString(", ")
                     )
 
                     // Initialize debug tools state based on user preferences
                     DebugToolsManager.setDebugModeEnabled(context, preferences.isDebugModeEnabled)
 
-                    Timber.d("User preferences loaded: debug mode = %s", preferences.isDebugModeEnabled)
+                    Timber.d("User preferences loaded: notification filters = %s, debug mode = %s, filter words = %s", 
+                        preferences.notificationFilterEnabled, preferences.isDebugModeEnabled, preferences.keywordFilters.size)
                 }
                 .launchIn(viewModelScope)
         }
@@ -87,28 +94,15 @@ class SettingsViewModel(
                     }
                 }
             }
-            SettingsEvent.TogglePrivacyOptions -> {
-                viewModelScope.launch {
-                    try {
-                        val currentState = _uiState.value
-                        _uiState.value = currentState.copy(
-                            isPrivacyOptionsEnabled = !currentState.isPrivacyOptionsEnabled
-                        )
-                        Timber.d("Privacy options toggled to ${_uiState.value.isPrivacyOptionsEnabled}")
-                    } catch (e: Exception) {
-                        Timber.e(e, "Failed to toggle privacy options")
-                        _uiState.value = _uiState.value.copy(errorMessage = "Failed to update privacy options")
-                    }
-                }
-            }
             SettingsEvent.ToggleNotificationFilters -> {
                 viewModelScope.launch {
                     try {
-                        val currentState = _uiState.value
-                        _uiState.value = currentState.copy(
-                            isNotificationFiltersEnabled = !currentState.isNotificationFiltersEnabled
-                        )
-                        Timber.d("Notification filters toggled to ${_uiState.value.isNotificationFiltersEnabled}")
+                        val newState = !_uiState.value.isNotificationFiltersEnabled
+                        val result = userPreferencesRepository.updateNotificationFilterEnabled(newState)
+                        if (result.isFailure) {
+                            throw result.exceptionOrNull() ?: Exception("Unknown error")
+                        }
+                        Timber.d("Notification filters toggled to $newState")
                     } catch (e: Exception) {
                         Timber.e(e, "Failed to toggle notification filters")
                         _uiState.value = _uiState.value.copy(errorMessage = "Failed to update notification filters")
@@ -136,6 +130,55 @@ class SettingsViewModel(
             }
             SettingsEvent.ClearError -> {
                 _uiState.value = _uiState.value.copy(errorMessage = null)
+            }
+            is SettingsEvent.UpdateFilterWordsInput -> {
+                _uiState.value = _uiState.value.copy(filterWordsInput = event.input)
+            }
+            SettingsEvent.SaveFilterWords -> {
+                viewModelScope.launch {
+                    try {
+                        val filterWords = _uiState.value.filterWordsInput
+                            .split(",")
+                            .map { it.trim() }
+                            .filter { it.isNotBlank() }
+                        
+                        val result = userPreferencesRepository.updateNotificationFilters(filterWords, emptyList())
+                        if (result.isFailure) {
+                            throw result.exceptionOrNull() ?: Exception("Unknown error")
+                        }
+                        
+                        _uiState.value = _uiState.value.copy(
+                            globalFilterWords = filterWords,
+                            errorMessage = null
+                        )
+                        
+                        Timber.d("Filter words saved: ${filterWords.joinToString(",")}")
+                    } catch (e: Exception) {
+                        Timber.e(e, "Failed to save filter words")
+                        _uiState.value = _uiState.value.copy(errorMessage = "Failed to save filter words")
+                    }
+                }
+            }
+            SettingsEvent.ClearFilterWords -> {
+                viewModelScope.launch {
+                    try {
+                        val result = userPreferencesRepository.updateNotificationFilters(emptyList(), emptyList())
+                        if (result.isFailure) {
+                            throw result.exceptionOrNull() ?: Exception("Unknown error")
+                        }
+                        
+                        _uiState.value = _uiState.value.copy(
+                            globalFilterWords = emptyList(),
+                            filterWordsInput = "",
+                            errorMessage = null
+                        )
+                        
+                        Timber.d("Filter words cleared")
+                    } catch (e: Exception) {
+                        Timber.e(e, "Failed to clear filter words")
+                        _uiState.value = _uiState.value.copy(errorMessage = "Failed to clear filter words")
+                    }
+                }
             }
         }
     }

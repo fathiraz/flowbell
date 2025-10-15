@@ -100,4 +100,46 @@ class AppPreferencesRepository(
             throw e
         }
     }
+
+    /**
+     * Update filter words for a specific app
+     */
+    suspend fun updateFilterWords(packageName: String, filterWords: List<String>) {
+        try {
+            Timber.d("🔧 Setting filter words for $packageName: ${filterWords.joinToString(",")}")
+            
+            // Ensure preference exists first
+            val existingPreference = appPreferencesDao.getPreference(packageName)
+            if (existingPreference == null) {
+                // Create new preference with default forwarding disabled
+                val newPreference = AppPreferences(
+                    packageName = packageName,
+                    isForwardingEnabled = false,
+                    filterWords = filterWords.joinToString(",")
+                )
+                appPreferencesDao.insertPreference(newPreference)
+                Timber.d("✅ Created new preference for $packageName with filter words")
+            } else {
+                // Update existing preference
+                appPreferencesDao.updateFilterWords(packageName, filterWords.joinToString(","))
+                Timber.d("✅ Updated filter words for $packageName")
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "❌ Failed to update filter words for $packageName")
+            throw e
+        }
+    }
+
+    /**
+     * Get filter words for a specific app
+     */
+    suspend fun getFilterWords(packageName: String): List<String> {
+        return try {
+            val preference = appPreferencesDao.getPreference(packageName)
+            preference?.filterWords?.split(",")?.filter { it.isNotBlank() } ?: emptyList()
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to get filter words for $packageName")
+            emptyList()
+        }
+    }
 }

@@ -21,17 +21,20 @@ import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.FilterAlt
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -61,6 +64,7 @@ import com.fathiraz.flowbell.presentation.components.ModernContentSection
 import com.fathiraz.flowbell.presentation.components.ModernLoadingState
 import com.fathiraz.flowbell.presentation.components.ModernSpacing
 import com.fathiraz.flowbell.presentation.theme.ModernColors
+import com.fathiraz.flowbell.core.utils.FilterDisplayUtil
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -73,7 +77,7 @@ fun SettingsScreen(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 16.dp)
+            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -161,61 +165,6 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Privacy & Security Section
-        Text(
-            text = "Privacy & Security",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
-        )
-        Text(
-            text = "Protect your data and enhance privacy",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        // Privacy Options Setting
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Icon(
-                    Icons.Default.Lock,
-                    contentDescription = "Privacy",
-                    tint = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.size(24.dp)
-                )
-                Column {
-                    Text(
-                        text = "Privacy Options",
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = "Enhanced privacy settings for notifications",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            Switch(
-                checked = state.isPrivacyOptionsEnabled,
-                onCheckedChange = { onEvent(SettingsEvent.TogglePrivacyOptions) },
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = MaterialTheme.colorScheme.primary,
-                    checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-                )
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
         // Notifications Section
         Text(
             text = "Notifications",
@@ -253,7 +202,7 @@ fun SettingsScreen(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "Configure advanced notification filtering rules",
+                        text = "Filter notifications by keywords",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -269,57 +218,66 @@ fun SettingsScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Content Filtering - Coming Soon
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Icon(
-                Icons.Default.FilterAlt,
-                contentDescription = "Content Filter",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(24.dp)
-            )
-            Column {
-                Text(
-                    text = "Content Filtering",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+        // Filter Words Input - only show when Advanced Filters is enabled
+        if (state.isNotificationFiltersEnabled) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 36.dp, top = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedTextField(
+                    value = state.filterWordsInput,
+                    onValueChange = { onEvent(SettingsEvent.UpdateFilterWordsInput(it)) },
+                    label = { Text("Keywords (comma-separated)") },
+                    placeholder = { Text("e.g., important, urgent, meeting") },
+                    modifier = Modifier.fillMaxWidth(),
+                    supportingText = {
+                        Text(
+                            text = "Current filters: ${state.globalFilterWords.size} words",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                 )
-                Text(
-                    text = "Filter notifications based on content keywords (Coming soon)",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-
-        // Time-based Rules - Coming Soon
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Icon(
-                Icons.Default.Schedule,
-                contentDescription = "Time Rules",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(24.dp)
-            )
-            Column {
-                Text(
-                    text = "Time-based Rules",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = "Set notification delivery schedules (Coming soon)",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    TextButton(
+                        onClick = { onEvent(SettingsEvent.SaveFilterWords) },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            Icons.Default.Save,
+                            contentDescription = "Save",
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Save")
+                    }
+                    
+                    TextButton(
+                        onClick = { onEvent(SettingsEvent.ClearFilterWords) },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            Icons.Default.Clear,
+                            contentDescription = "Clear",
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Clear")
+                    }
+                }
+                
+                if (state.globalFilterWords.isNotEmpty()) {
+                    Text(
+                        text = "Active filters: ${FilterDisplayUtil.formatActiveFilters(state.globalFilterWords)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
         }
 
@@ -521,7 +479,6 @@ private fun SettingsScreenLightPreview() {
         SettingsScreen(
             state = SettingsUiState(
                 isDarkMode = false,
-                isPrivacyOptionsEnabled = true,
                 isNotificationFiltersEnabled = false
             ),
             onEvent = {}
@@ -536,7 +493,6 @@ private fun SettingsScreenDarkPreview() {
         SettingsScreen(
             state = SettingsUiState(
                 isDarkMode = true,
-                isPrivacyOptionsEnabled = false,
                 isNotificationFiltersEnabled = true,
                 isDebugModeEnabled = true
             ),
