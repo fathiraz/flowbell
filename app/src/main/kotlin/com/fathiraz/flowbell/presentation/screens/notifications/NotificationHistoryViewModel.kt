@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 
 /**
  * ViewModel for Notification History with real-time updates
@@ -21,6 +23,8 @@ class NotificationHistoryViewModel(
 
     private val _uiState = MutableStateFlow(HistoryUiState())
     val uiState: StateFlow<HistoryUiState> = _uiState.asStateFlow()
+    
+    private var searchJob: Job? = null
 
     init {
         android.util.Log.d("NotificationHistoryViewModel", "🚀 NotificationHistoryViewModel initialized with real-time updates")
@@ -31,6 +35,9 @@ class NotificationHistoryViewModel(
         when (event) {
             is HistoryEvent.FilterByStatus -> filterByStatus(event.status)
             is HistoryEvent.SearchByApp -> searchByApp(event.query)
+            is HistoryEvent.SearchQueryChanged -> onSearchQueryChanged(event.query)
+            is HistoryEvent.FilterSelected -> onFilterSelected(event.filter)
+            is HistoryEvent.ClearSearch -> onClearSearch()
             is HistoryEvent.ShowNotificationDetails -> showNotificationDetails(event.notificationLog)
             HistoryEvent.Refresh -> refreshNotifications()
             HistoryEvent.ClearFilters -> clearFilters()
@@ -153,6 +160,29 @@ class NotificationHistoryViewModel(
         _uiState.value = _uiState.value.copy(searchApp = query)
         applyFilters()
     }
+    
+    private fun onSearchQueryChanged(query: String) {
+        // Cancel previous search job
+        searchJob?.cancel()
+        
+        _uiState.value = _uiState.value.copy(searchQuery = query)
+        
+        // Debounce search with 300ms delay
+        searchJob = viewModelScope.launch {
+            delay(300)
+            applyFilters()
+        }
+    }
+    
+    private fun onFilterSelected(filter: NotificationFilter) {
+        _uiState.value = _uiState.value.copy(selectedFilter = filter)
+        applyFilters()
+    }
+    
+    private fun onClearSearch() {
+        _uiState.value = _uiState.value.copy(searchQuery = "")
+        applyFilters()
+    }
 
     private fun showNotificationDetails(notificationLog: NotificationLog) {
         // Implementation for showing notification details
@@ -177,12 +207,36 @@ class NotificationHistoryViewModel(
         val currentState = _uiState.value
         var filtered = currentState.logs
 
-        // Apply status filter
-        currentState.filterStatus?.let { status ->
-            filtered = filtered.filter { it.status.name.equals(status, ignoreCase = true) }
+        // Apply status filter (from selectedFilter)
+        when (currentState.selectedFilter) {
+            NotificationFilter.Sent -> {
+                filtered = filtered.filter { it.status.name.equals("SENT", ignoreCase = true) }
+            }
+            NotificationFilter.Failed -> {
+                filtered = filtered.filter { it.status.name.equals("FAILED", ignoreCase = true) }
+            }
+            NotificationFilter.All -> {
+                // No filtering by status
+            }
+            null -> {
+                // No filter selected, use legacy filterStatus if available
+                currentState.filterStatus?.let { status ->
+                    filtered = filtered.filter { it.status.name.equals(status, ignoreCase = true) }
+                }
+            }
         }
 
-        // Apply app search
+        // Apply search query
+        if (currentState.searchQuery.isNotBlank()) {
+            filtered = filtered.filter {
+                it.appName.contains(currentState.searchQuery, ignoreCase = true) ||
+                it.packageName.contains(currentState.searchQuery, ignoreCase = true) ||
+                (it.notificationTitle?.contains(currentState.searchQuery, ignoreCase = true) == true) ||
+                (it.notificationText?.contains(currentState.searchQuery, ignoreCase = true) == true)
+            }
+        }
+
+        // Apply legacy app search (for backward compatibility)
         if (currentState.searchApp.isNotBlank()) {
             filtered = filtered.filter {
                 it.appName.contains(currentState.searchApp, ignoreCase = true) ||
@@ -202,6 +256,7 @@ data class HistoryUiState(
     val filterStatus: String? = null,
     val searchApp: String = "",
     val searchQuery: String = "",
+    val selectedFilter: NotificationFilter? = NotificationFilter.All,
     val filteredLogs: List<NotificationLog> = emptyList(),
     val error: String? = null,
     val showFilters: Boolean = false,
@@ -215,9 +270,18 @@ data class HistoryUiState(
 sealed interface HistoryEvent {
     data class FilterByStatus(val status: String?) : HistoryEvent
     data class SearchByApp(val query: String) : HistoryEvent
+    data class SearchQueryChanged(val query: String) : HistoryEvent
+    data class FilterSelected(val filter: NotificationFilter) : HistoryEvent
+    object ClearSearch : HistoryEvent
     data class ShowNotificationDetails(val notificationLog: NotificationLog) : HistoryEvent
     object Refresh : HistoryEvent
     object ClearFilters : HistoryEvent
     object ToggleFilters : HistoryEvent
     object LoadMore : HistoryEvent
+}
+
+sealed class NotificationFilter {
+    object All : NotificationFilter()
+    object Sent : NotificationFilter()
+    object Failed : NotificationFilter()
 }
