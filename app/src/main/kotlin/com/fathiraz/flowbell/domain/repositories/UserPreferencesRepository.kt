@@ -79,4 +79,9 @@ interface UserPreferencesRepository {
      * Update debug mode.
      */
     suspend fun updateDebugMode(isEnabled: Boolean): Result<Unit>
+
+    /**
+     * Update notification filter enabled status.
+     */
+    suspend fun updateNotificationFilterEnabled(isEnabled: Boolean): Result<Unit>
 }

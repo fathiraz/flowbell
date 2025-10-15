@@ -36,6 +36,12 @@ data class UserPreferencesEntity(
     @ColumnInfo(name = "is_debug_mode_enabled")
     val isDebugModeEnabled: Boolean = false,
 
+    @ColumnInfo(name = "notification_filter_enabled")
+    val notificationFilterEnabled: Boolean = false,
+
+    @ColumnInfo(name = "global_filter_words")
+    val globalFilterWords: String = "", // Stored as comma-separated
+
     @ColumnInfo(name = "created_at")
     val createdAt: Long = System.currentTimeMillis(),
 
@@ -58,7 +64,9 @@ fun UserPreferencesEntity.toDomainModel(): UserPreferences {
         webhookUrl = webhookUrl,
         autoStartService = autoStartService,
         isOnboardingCompleted = isOnboardingCompleted,
-        isDebugModeEnabled = isDebugModeEnabled
+        isDebugModeEnabled = isDebugModeEnabled,
+        notificationFilterEnabled = notificationFilterEnabled,
+        keywordFilters = globalFilterWords.split(",").filter { it.isNotBlank() }
     )
 }
 
@@ -74,6 +82,8 @@ fun UserPreferences.toEntity(): UserPreferencesEntity {
         autoStartService = autoStartService,
         isOnboardingCompleted = isOnboardingCompleted,
         isDebugModeEnabled = isDebugModeEnabled,
+        notificationFilterEnabled = notificationFilterEnabled,
+        globalFilterWords = keywordFilters.joinToString(","),
         updatedAt = System.currentTimeMillis()
     )
 }

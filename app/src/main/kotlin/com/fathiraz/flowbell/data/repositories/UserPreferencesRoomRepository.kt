@@ -25,7 +25,9 @@ class UserPreferencesRoomRepository(
                     webhookUrl = it.webhookUrl,
                     autoStartService = it.autoStartService,
                     isOnboardingCompleted = it.isOnboardingCompleted,
-                    isDebugModeEnabled = it.isDebugModeEnabled
+                    isDebugModeEnabled = it.isDebugModeEnabled,
+                    notificationFilterEnabled = it.notificationFilterEnabled,
+                    keywordFilters = it.globalFilterWords.split(",").filter { word -> word.isNotBlank() }
                 )
             } ?: UserPreferences()
         }
@@ -42,6 +44,7 @@ class UserPreferencesRoomRepository(
                     autoStartService = preferences.autoStartService,
                     isOnboardingCompleted = preferences.isOnboardingCompleted,
                     isDebugModeEnabled = preferences.isDebugModeEnabled,
+                    globalFilterWords = preferences.keywordFilters.joinToString(","),
                     updatedAt = System.currentTimeMillis()
                 )
             )
@@ -62,8 +65,13 @@ class UserPreferencesRoomRepository(
     }
 
     override suspend fun updateNotificationFilters(keywordFilters: List<String>, categoryFilters: List<String>): Result<Unit> {
-        // TODO: Implement notification filters in Room schema
-        return Result.success(Unit)
+        return try {
+            userPreferencesDao.ensurePreferencesExist()
+            userPreferencesDao.updateGlobalFilterWords(keywordFilters.joinToString(","))
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     override suspend fun markFirstLaunchCompleted(): Result<Unit> {
@@ -141,6 +149,28 @@ class UserPreferencesRoomRepository(
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    override suspend fun updateNotificationFilterEnabled(isEnabled: Boolean): Result<Unit> {
+        return try {
+            userPreferencesDao.ensurePreferencesExist()
+            userPreferencesDao.updateNotificationFilterEnabled(isEnabled)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Get global filter words for notification filtering
+     */
+    suspend fun getGlobalFilterWords(): List<String> {
+        return try {
+            val entity = userPreferencesDao.getUserPreferences()
+            entity?.globalFilterWords?.split(",")?.filter { it.isNotBlank() } ?: emptyList()
+        } catch (e: Exception) {
+            emptyList()
         }
     }
 }

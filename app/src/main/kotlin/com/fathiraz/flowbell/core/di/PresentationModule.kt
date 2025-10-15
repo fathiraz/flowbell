@@ -5,12 +5,14 @@ import com.fathiraz.flowbell.presentation.screens.dashboard.DashboardViewModel
 import com.fathiraz.flowbell.presentation.screens.notifications.NotificationHistoryViewModel
 import com.fathiraz.flowbell.presentation.screens.settings.SettingsViewModel
 import com.fathiraz.flowbell.presentation.screens.notifications.AppListViewModel
+import com.fathiraz.flowbell.presentation.screens.apps.AppDetailViewModel
 import com.fathiraz.flowbell.presentation.screens.webhook.WebhookViewModel
 import com.fathiraz.flowbell.presentation.screens.splash.SplashScreenViewModel
 import com.fathiraz.flowbell.presentation.screens.onboarding.OnboardingViewModel
 import com.fathiraz.flowbell.domain.repositories.AppRepository
 import com.fathiraz.flowbell.domain.repositories.UserPreferencesRepository
 import com.fathiraz.flowbell.domain.repositories.NotificationStatisticsRepository
+import com.fathiraz.flowbell.data.local.database.repository.AppPreferencesRepository
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
@@ -37,6 +39,10 @@ val presentationModule = module {
     
     viewModel {
         AppListViewModel(get<AppRepository>())
+    }
+    
+    viewModel {
+        AppDetailViewModel(get<AppPreferencesRepository>())
     }
     
     viewModel {

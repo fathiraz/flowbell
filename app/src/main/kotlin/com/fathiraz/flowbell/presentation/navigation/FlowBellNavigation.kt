@@ -24,6 +24,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.fathiraz.flowbell.data.preferences.ThemePreferences
 import com.fathiraz.flowbell.presentation.screens.apps.AppListRoute
+import com.fathiraz.flowbell.presentation.screens.apps.AppDetailRoute
 import com.fathiraz.flowbell.presentation.screens.dashboard.DashboardRoute
 import com.fathiraz.flowbell.presentation.screens.notifications.NotificationHistoryRoute
 import com.fathiraz.flowbell.presentation.screens.permissions.PermissionRoute
@@ -96,6 +97,16 @@ fun FlowBellNavigation(navController: NavHostController, themePreferences: Theme
 
             composable("apps") {
                 AppListRoute(navController = navController)
+            }
+
+            composable("app_detail/{packageName}/{appName}") { backStackEntry ->
+                val packageName = backStackEntry.arguments?.getString("packageName") ?: ""
+                val appName = backStackEntry.arguments?.getString("appName") ?: ""
+                AppDetailRoute(
+                    navController = navController,
+                    packageName = packageName,
+                    appName = appName
+                )
             }
 
             composable("history") {

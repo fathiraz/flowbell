@@ -72,6 +72,18 @@ interface UserPreferencesDao {
     suspend fun updateDebugMode(isEnabled: Boolean, timestamp: Long = System.currentTimeMillis())
 
     /**
+     * Update notification filter enabled
+     */
+    @Query("UPDATE user_preferences SET notification_filter_enabled = :isEnabled, updated_at = :timestamp WHERE id = 1")
+    suspend fun updateNotificationFilterEnabled(isEnabled: Boolean, timestamp: Long = System.currentTimeMillis())
+
+    /**
+     * Update global filter words
+     */
+    @Query("UPDATE user_preferences SET global_filter_words = :filterWords, updated_at = :timestamp WHERE id = 1")
+    suspend fun updateGlobalFilterWords(filterWords: String, timestamp: Long = System.currentTimeMillis())
+
+    /**
      * Clear webhook URL
      */
     @Query("UPDATE user_preferences SET webhook_url = '', updated_at = :timestamp WHERE id = 1")

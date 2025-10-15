@@ -11,6 +11,7 @@ import com.fathiraz.flowbell.data.local.database.entities.UserPreferencesEntity
 import com.fathiraz.flowbell.data.local.database.entities.AppPreferences
 import com.fathiraz.flowbell.data.local.database.entities.NotificationQueue
 import com.fathiraz.flowbell.data.local.database.converters.NotificationQueueStatusConverter
+import com.fathiraz.flowbell.data.local.database.converters.StringListConverter
 import com.fathiraz.flowbell.data.local.database.dao.UserPreferencesDao
 import com.fathiraz.flowbell.data.local.database.dao.AppPreferencesDao
 import com.fathiraz.flowbell.data.local.database.dao.NotificationQueueDao
@@ -18,10 +19,10 @@ import com.fathiraz.flowbell.core.utils.LoggerUtils
 
 @Database(
     entities = [AppPreferences::class, NotificationQueue::class, UserPreferencesEntity::class],
-    version = 8,
+    version = 10,
     exportSchema = false
 )
-@TypeConverters(NotificationQueueStatusConverter::class)
+@TypeConverters(NotificationQueueStatusConverter::class, StringListConverter::class)
 abstract class FlowBellDatabase : RoomDatabase() {
 
     abstract fun appPreferencesDao(): AppPreferencesDao
@@ -211,6 +212,50 @@ abstract class FlowBellDatabase : RoomDatabase() {
             }
         }
 
+        internal val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                LoggerUtils.Database.i("Migrating database from version 8 to 9: Adding filter words columns")
+
+                try {
+                    // Add global_filter_words column to user_preferences table
+                    database.execSQL("""
+                        ALTER TABLE user_preferences
+                        ADD COLUMN global_filter_words TEXT NOT NULL DEFAULT ''
+                    """.trimIndent())
+
+                    // Add filter_words column to app_preferences table
+                    database.execSQL("""
+                        ALTER TABLE app_preferences
+                        ADD COLUMN filter_words TEXT NOT NULL DEFAULT ''
+                    """.trimIndent())
+
+                    LoggerUtils.Database.i("Filter words columns added successfully")
+                } catch (e: Exception) {
+                    LoggerUtils.Database.e("Error adding filter words columns", e)
+                    throw e
+                }
+            }
+        }
+
+        internal val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                LoggerUtils.Database.i("Migrating database from version 9 to 10: Adding notification filter enabled column")
+
+                try {
+                    // Add notification_filter_enabled column to user_preferences table
+                    database.execSQL("""
+                        ALTER TABLE user_preferences
+                        ADD COLUMN notification_filter_enabled INTEGER NOT NULL DEFAULT 0
+                    """.trimIndent())
+
+                    LoggerUtils.Database.i("notification_filter_enabled column added successfully")
+                } catch (e: Exception) {
+                    LoggerUtils.Database.e("Error adding notification_filter_enabled column", e)
+                    throw e
+                }
+            }
+        }
+
         fun getDatabase(context: Context): FlowBellDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -218,7 +263,7 @@ abstract class FlowBellDatabase : RoomDatabase() {
                     FlowBellDatabase::class.java,
                     "flowbell_database"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10)
                     .addCallback(DatabaseCallback())
                     .build()
                 INSTANCE = instance
@@ -309,12 +354,14 @@ abstract class FlowBellDatabase : RoomDatabase() {
                     val columnCursor = db.query("PRAGMA table_info(user_preferences)")
                     var onboardingColumnExists = false
                     var debugModeColumnExists = false
+                    var notificationFilterColumnExists = false
 
                     while (columnCursor.moveToNext()) {
                         val columnName = columnCursor.getString(1) // Column name is at index 1
                         when (columnName) {
                             "is_onboarding_completed" -> onboardingColumnExists = true
                             "is_debug_mode_enabled" -> debugModeColumnExists = true
+                            "notification_filter_enabled" -> notificationFilterColumnExists = true
                         }
                     }
                     columnCursor.close()
@@ -337,6 +384,16 @@ abstract class FlowBellDatabase : RoomDatabase() {
                             ADD COLUMN is_debug_mode_enabled INTEGER NOT NULL DEFAULT 0
                         """.trimIndent())
                         LoggerUtils.Database.i("is_debug_mode_enabled column added successfully")
+                    }
+
+                    // Add missing notification_filter_enabled column
+                    if (!notificationFilterColumnExists) {
+                        LoggerUtils.Database.i("Adding missing notification_filter_enabled column")
+                        db.execSQL("""
+                            ALTER TABLE user_preferences
+                            ADD COLUMN notification_filter_enabled INTEGER NOT NULL DEFAULT 0
+                        """.trimIndent())
+                        LoggerUtils.Database.i("notification_filter_enabled column added successfully")
                     }
                 } catch (e: Exception) {
                     LoggerUtils.Database.e("Error ensuring missing columns", e)

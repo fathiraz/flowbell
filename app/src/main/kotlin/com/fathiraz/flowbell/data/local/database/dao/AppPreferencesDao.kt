@@ -39,4 +39,7 @@ interface AppPreferencesDao {
     
     @Query("UPDATE app_preferences SET isForwardingEnabled = :enabled, updatedAt = :timestamp WHERE packageName = :packageName")
     suspend fun updateForwardingStatus(packageName: String, enabled: Boolean, timestamp: Long)
+    
+    @Query("UPDATE app_preferences SET filter_words = :filterWords, updatedAt = :timestamp WHERE packageName = :packageName")
+    suspend fun updateFilterWords(packageName: String, filterWords: String, timestamp: Long = System.currentTimeMillis())
 }

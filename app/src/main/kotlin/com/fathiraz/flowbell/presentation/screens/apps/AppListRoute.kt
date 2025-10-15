@@ -2,6 +2,7 @@ package com.fathiraz.flowbell.presentation.screens.apps
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -216,7 +217,7 @@ fun AppListRoute(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(vertical = 8.dp),
+                                    .padding(vertical = 6.dp), // Adjusted to match new spacing
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
@@ -235,21 +236,23 @@ fun AppListRoute(
                 } else {
                     // Show actual apps list
                     LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = Arrangement.spacedBy(12.dp) // Increased from 8.dp
                     ) {
                         items(
                             items = uiState.filteredApps,
                             key = { it.packageName }
                         ) { app ->
-                            val index = uiState.filteredApps.indexOf(app)
                             AnimatedListItem(
                                 visible = true,
-                                animationDelay = if (isInitialLoad) index * 50 else 0
+                                animationDelay = 0 // Removed index-based delay for performance
                             ) {
                                 AppListItem(
                                     app = app,
                                     onToggle = { isEnabled ->
                                         viewModel.onEvent(AppListEvent.ToggleApp(app.packageName, isEnabled))
+                                    },
+                                    onClick = {
+                                        navController.navigate("app_detail/${app.packageName}/${app.name}")
                                     }
                                 )
                             }
@@ -263,58 +266,70 @@ fun AppListRoute(
 @Composable
 private fun AppListItem(
     app: com.fathiraz.flowbell.domain.entities.App,
-    onToggle: (Boolean) -> Unit
+    onToggle: (Boolean) -> Unit,
+    onClick: () -> Unit
 ) {
-    Row(
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+            .clickable { onClick() }, // Card click navigates to details
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        shape = RoundedCornerShape(12.dp)
     ) {
         Row(
-            modifier = Modifier.weight(1f),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp), // Increased from 12.dp for better spacing
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            MediumPackageIcon(
-                packageName = app.packageName,
-                appName = app.name
-            )
+            // App icon and info
+            Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                MediumPackageIcon(
+                    packageName = app.packageName,
+                    appName = app.name
+                )
 
-            // App info
-            Column {
-                Text(
-                    text = app.name,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = app.packageName,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                app.versionName?.takeIf { it.isNotBlank() }?.let { versionName ->
+                Column {
                     Text(
-                        text = "$versionName (${app.versionCode})",
+                        text = app.name,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = app.packageName,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    app.versionName?.takeIf { it.isNotBlank() }?.let { versionName ->
+                        Text(
+                            text = "$versionName (${app.versionCode})",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
-        }
 
-        // Toggle switch
-        Switch(
-            checked = app.isForwardingEnabled,
-            onCheckedChange = onToggle,
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = MaterialTheme.colorScheme.primary,
-                checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-                uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                uncheckedTrackColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+            // Toggle switch - clicks are consumed by Switch, don't propagate to Card
+            Switch(
+                checked = app.isForwardingEnabled,
+                onCheckedChange = onToggle,
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = MaterialTheme.colorScheme.primary,
+                    checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                    uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    uncheckedTrackColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                )
             )
-        )
+        }
     }
 }

@@ -15,6 +15,7 @@ object PreferenceKeys {
     val AUTO_START_SERVICE = booleanPreferencesKey("auto_start_service")
     val IS_ONBOARDING_COMPLETED = booleanPreferencesKey("is_onboarding_completed")
     val IS_DEBUG_MODE_ENABLED = booleanPreferencesKey("is_debug_mode_enabled")
+    val NOTIFICATION_FILTER_ENABLED = booleanPreferencesKey("notification_filter_enabled")
 }
 
 /**
